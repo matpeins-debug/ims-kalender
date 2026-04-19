@@ -1,0 +1,2303 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMS Kalender · Refined v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   IMS KALENDER · Modern Glass v2 (refined)
+   ========================================================================= */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #f7f4ee;
+  --bg-soft:     #fbf8f2;
+  --surface:     #ffffff;
+  --surface-2:   #faf7f0;
+
+  --line:        rgba(26,25,21,0.06);
+  --line-soft:   rgba(26,25,21,0.03);
+
+  --text:   #1a1915;
+  --text-2: #52493e;
+  --text-3: #7a7266;
+  --text-4: #a8a094;
+
+  --brand:      #00906a;
+  --brand-2:    #00a87a;
+  --brand-soft: rgba(0,144,106,0.10);
+
+  --c-kunde:       #2563eb;
+  --c-lieferant:   #7c3aed;
+  --c-intern:      #00906a;
+  --c-reise:       #ea580c;
+  --c-deadline:    #dc2626;
+  --c-geburtstag:  #db2777;
+  --c-privat:      #8a8478;
+
+  --navi-gruen:  #00906a;
+  --navi-orange: #d97706;
+  --navi-rot:    #dc2626;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+
+  /* Echte Tiefe — mehrlagige Schatten */
+  --shadow-xs:   0 1px 2px rgba(26,25,21,0.05);
+  --shadow-card: 0 1px 2px rgba(26,25,21,0.06), 0 4px 12px rgba(26,25,21,0.04);
+  --shadow-lift: 0 4px 8px rgba(26,25,21,0.08), 0 12px 28px rgba(26,25,21,0.06);
+  --shadow-pop:  0 24px 56px rgba(26,25,21,0.16), 0 8px 16px rgba(26,25,21,0.07);
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --topbar-h: 60px;
+  --sidebar-w: 260px;
+  --slot-h: 64px;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(0,168,122,0.07), transparent 40%),
+    radial-gradient(circle at 92% 12%, rgba(234,88,12,0.05), transparent 35%),
+    radial-gradient(circle at 50% 100%, rgba(124,58,237,0.04), transparent 50%);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.num, .mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* =========================================================================
+   MICRO-INTERACTIONS
+   ========================================================================= */
+@keyframes topbarIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sidebarIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mainIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes terminPop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes terminAlldayIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* =========================================================================
+   TOPBAR
+   ========================================================================= */
+.topbar {
+  height: var(--topbar-h);
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 0 var(--line-soft);
+  animation: topbarIn 0.4s var(--ease) backwards;
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.logo-mark {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #00a87a 0%, #00906a 60%, #006548 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.5px;
+  box-shadow: 0 3px 10px rgba(0,144,106,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.brand-text .name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.brand-text .sub {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-item {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.12s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-item:hover { background: rgba(26,25,21,0.04); color: var(--text); }
+
+.nav-item.active {
+  background: var(--text);
+  color: var(--bg-soft);
+}
+
+.nav-item .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+.nav-item.active .dot { background: #00d9a7; box-shadow: 0 0 0 3px rgba(255,255,255,0.15); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* =====================================================
+   COMMAND PALETTE — prominent, wie Linear/Raycast
+   ===================================================== */
+.command-bar {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.command-input {
+  width: 100%;
+  height: 38px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 48px 0 42px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26,25,21,0.04), inset 0 1px 0 rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  transition: all 0.15s var(--ease);
+}
+
+.command-input:hover {
+  box-shadow: 0 4px 12px rgba(26,25,21,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  border-color: rgba(26,25,21,0.12);
+}
+
+.command-input::before {
+  content: '⌕';
+  position: absolute;
+  left: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.command-placeholder {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.command-placeholder-text {
+  display: inline-block;
+  animation: cycleText 12s infinite;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+@keyframes cycleText {
+  0%, 22%    { content: '"Schadner" '; }
+  25%, 47%   { content: '"offene Angebote" '; }
+  50%, 72%   { content: '"neuer Kundentermin" '; }
+  75%, 97%   { content: '"KW 18" '; }
+}
+
+.command-kbd {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  gap: 3px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.command-kbd kbd {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+/* =====================================================
+   Icon Buttons
+   ===================================================== */
+.icon-btn {
+  width: 38px; height: 38px;
+  border: none;
+  background: rgba(26,25,21,0.04);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-2);
+  position: relative;
+  transition: all 0.12s var(--ease);
+  font-weight: 600;
+}
+
+.icon-btn:hover { background: rgba(26,25,21,0.08); color: var(--text); }
+
+.icon-btn .badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
+  border-radius: 100px;
+  background: var(--c-deadline);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.95);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 4px 4px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s var(--ease);
+}
+
+.user-chip:hover { background: var(--surface); box-shadow: var(--shadow-xs); }
+
+.user-chip .avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+/* =========================================================================
+   SHELL & SIDEBAR — OHNE harte Linien
+   ========================================================================= */
+.shell {
+  display: flex;
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.25) 100%),
+    radial-gradient(circle at 50% 0%, rgba(0,168,122,0.04), transparent 40%);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  padding: 22px 14px 28px;
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
+  /* KEIN border-right — nur subtile Trennung durch Alpha */
+  animation: sidebarIn 0.5s 0.1s var(--ease) backwards;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(26,25,21,0.1); border-radius: 100px; }
+
+.sb-section {
+  margin-bottom: 28px;
+}
+
+.sb-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  padding: 0 10px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sb-section-title .ct {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text-4);
+  font-size: 10px;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+/* Mini-Monatskalender — OHNE Border/Shadow */
+.mini-cal {
+  padding: 6px;
+  /* Kein background, kein border, kein shadow */
+}
+
+.mini-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.mini-cal-month {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.mini-cal-nav {
+  display: flex;
+  gap: 2px;
+}
+
+.mini-cal-nav button {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s var(--ease);
+}
+
+.mini-cal-nav button:hover {
+  background: rgba(26,25,21,0.07);
+  color: var(--text);
+}
+
+.mini-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
+
+.mini-cal-wd {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: var(--text-3);
+  font-weight: 700;
+  text-align: center;
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.mini-cal-day {
+  aspect-ratio: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: "JetBrains Mono", monospace;
+  transition: all 0.1s var(--ease);
+  position: relative;
+}
+
+.mini-cal-day.other-month { color: var(--text-4); opacity: 0.5; pointer-events: none; }
+.mini-cal-day:hover:not(.today):not(.other-month) { background: rgba(26,25,21,0.06); }
+.mini-cal-day.current-week { background: rgba(0,144,106,0.09); color: var(--text); font-weight: 600; }
+.mini-cal-day.today {
+  background: linear-gradient(135deg, #00a87a, #00906a);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(0,144,106,0.3), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.mini-cal-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--c-kunde);
+}
+.mini-cal-day.today.has-event::after { background: #fff; }
+
+/* Sidebar Items */
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  transition: all 0.12s var(--ease);
+  user-select: none;
+}
+
+.sb-item:hover {
+  background: rgba(255,255,255,0.55);
+  color: var(--text);
+}
+
+.sb-item.active {
+  background: rgba(255,255,255,0.95);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+  font-weight: 600;
+}
+
+.sb-item .icon {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+  opacity: 0.7;
+  color: var(--text-3);
+}
+
+.sb-item.active .icon { opacity: 1; color: var(--text); }
+
+.sb-item .count {
+  margin-left: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--text-4);
+  font-weight: 500;
+}
+
+/* Filter */
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-2);
+  user-select: none;
+  transition: all 0.1s var(--ease);
+}
+
+.filter-item:hover { background: rgba(255,255,255,0.45); }
+
+.filter-check {
+  width: 15px; height: 15px;
+  border: 1.5px solid rgba(26,25,21,0.15);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s var(--ease);
+  background: rgba(255,255,255,0.6);
+}
+
+.filter-item.on .filter-check {
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.filter-item.on .filter-check::after {
+  content: '';
+  width: 7px; height: 4px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translate(0.5px,-1px);
+}
+
+.filter-item .cat-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.filter-item.off { opacity: 0.5; }
+.filter-item.off .filter-label { color: var(--text-3); }
+
+.filter-label { flex: 1; }
+
+.filter-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--text-4);
+}
+
+/* =========================================================================
+   MAIN
+   ========================================================================= */
+.main {
+  flex: 1;
+  padding: 28px 32px 40px;
+  min-width: 0;
+  animation: mainIn 0.5s 0.15s var(--ease) backwards;
+}
+
+.main-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.main-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.main-title .kw {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0;
+  background: rgba(255,255,255,0.7);
+  padding: 3px 9px;
+  border-radius: 100px;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.main-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Segmented Control — Ansicht-Switcher */
+.view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--line-soft);
+}
+
+.view-switch-btn {
+  padding: 5px 11px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.12s var(--ease);
+  letter-spacing: -0.1px;
+}
+
+.view-switch-btn:hover { background: rgba(26,25,21,0.05); color: var(--text); }
+
+.view-switch-btn.active {
+  background: var(--text);
+  color: var(--bg-soft);
+  box-shadow: 0 2px 6px rgba(26,25,21,0.15);
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: var(--shadow-xs);
+}
+
+.nav-btn {
+  width: 30px; height: 30px;
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s var(--ease);
+}
+
+.nav-btn:hover { background: rgba(26,25,21,0.05); color: var(--text); }
+
+.today-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 7px;
+}
+
+.today-btn:hover { background: rgba(26,25,21,0.05); }
+
+.btn {
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.7);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:hover { background: var(--surface); box-shadow: var(--shadow-xs); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #00a87a, #00906a);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(0,144,106,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #00906a, #006548);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,144,106,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.btn-primary::before {
+  content: '+';
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* =========================================================================
+   CALENDAR CARD
+   ========================================================================= */
+.cal-card {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-radius: var(--r-2xl);
+  overflow: visible;
+  box-shadow: var(--shadow-card);
+  isolation: isolate;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+}
+
+/* =====================================================
+   HEADER — sticky beim Scrollen + Glass-Durchgleiten
+   ===================================================== */
+.cal-corner {
+  background: transparent;
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 6;
+  border-top-left-radius: var(--r-2xl);
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+.day-head {
+  padding: 18px 16px 14px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 5;
+  min-height: 70px;
+}
+
+.day-head:last-of-type {
+  border-top-right-radius: var(--r-2xl);
+}
+
+.day-head .wd {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.day-head .dt-nr {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.day-head .dt-month {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-top: 4px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.day-head.today .wd { color: var(--brand); }
+.day-head.today .dt-nr {
+  background: linear-gradient(135deg, #00906a 0%, #00a87a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.day-head.today::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 16px; right: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brand-2), var(--brand));
+  border-radius: 100px;
+}
+
+/* Ganztags */
+.allday-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+  min-height: 40px;
+  padding: 6px 0;
+}
+
+.allday-label {
+  padding: 9px 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-weight: 600;
+}
+
+.allday-cell {
+  padding: 4px 6px;
+  min-height: 40px;
+}
+
+.termin-allday {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s var(--ease);
+  position: relative;
+  margin-bottom: 3px;
+  animation: terminAlldayIn 0.35s var(--ease) backwards;
+}
+
+.termin-allday::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  border-radius: 100px;
+  background: currentColor;
+}
+
+.termin-allday.geburtstag {
+  background: rgba(219,39,119,0.12);
+  color: var(--c-geburtstag);
+  box-shadow: inset 0 0 0 1px rgba(219,39,119,0.15), 0 1px 2px rgba(26,25,21,0.04);
+}
+
+.termin-allday.reise {
+  background: rgba(234,88,12,0.13);
+  color: var(--c-reise);
+  box-shadow: inset 0 0 0 1px rgba(234,88,12,0.18), 0 1px 2px rgba(26,25,21,0.04);
+}
+
+.termin-allday.intern {
+  background: rgba(0,144,106,0.13);
+  color: var(--c-intern);
+  box-shadow: inset 0 0 0 1px rgba(0,144,106,0.18), 0 1px 2px rgba(26,25,21,0.04);
+}
+
+.termin-allday:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px currentColor, 0 3px 8px rgba(26,25,21,0.08); }
+
+/* =====================================================
+   ZEIT-SPALTE — kräftiger Kontrast (Außendienst-tauglich)
+   ===================================================== */
+/* Zeit-Spalte — solid background für konsistente Lesbarkeit (auch in Sonne/auf Tablet) */
+.time-col {
+  padding-top: 8px;
+  position: relative;
+  background: rgba(255,255,255,0.55);
+  box-shadow: inset -1px 0 0 var(--line-soft);
+}
+
+.time-slot {
+  height: var(--slot-h);
+  padding: 2px 10px 0 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--text);
+  text-align: right;
+  font-weight: 800;
+  position: relative;
+  letter-spacing: -0.2px;
+}
+
+/* Aktuelle Zeit als Pill in der Zeit-Spalte — neutral schwarz */
+.now-time-pill {
+  position: absolute;
+  right: 8px;
+  background: linear-gradient(135deg, #2a251e, #1a1915);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  box-shadow: 0 2px 8px rgba(26,25,21,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+  z-index: 3;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.now-time-pill::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #00d9a7;
+  box-shadow: 0 0 6px rgba(0,217,167,0.6);
+  animation: blink 1.5s infinite var(--ease);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* =====================================================
+   DAY COLUMNS
+   ===================================================== */
+.day-col {
+  position: relative;
+  min-height: 832px;
+  padding-top: 8px;
+}
+
+.day-col.today {
+  background: linear-gradient(180deg, rgba(0,144,106,0.025) 0%, rgba(0,144,106,0.003) 100%);
+}
+
+.hour-line {
+  position: absolute;
+  left: 4px; right: 4px;
+  height: 1px;
+  background: rgba(26,25,21,0.04);
+  pointer-events: none;
+}
+
+/* Jetzt-Linie — neutral dunkel (nicht mehr rot, damit Deadline-Rot nicht konkurriert) */
+.now-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 0;
+  border-top: 1px dashed rgba(26,25,21,0.28);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   TERMIN — Depth + dynamisches Layout + mehrzeiliger Titel
+   ========================================================================= */
+.termin {
+  position: absolute;
+  left: 4px; right: 4px;
+  padding: 9px 11px 14px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 2;
+  transition: all 0.2s var(--ease);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  /* TIEFE — Termine schweben sichtbar */
+  box-shadow:
+    0 1px 3px rgba(26,25,21,0.08),
+    0 6px 16px rgba(26,25,21,0.06),
+    inset 0 0.5px 0 rgba(255,255,255,0.6);
+  animation: terminPop 0.4s var(--ease) backwards;
+}
+
+.termin::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  border-radius: 100px;
+  background: currentColor;
+}
+
+.termin:hover {
+  z-index: 10;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 12px rgba(26,25,21,0.10),
+    0 16px 36px rgba(26,25,21,0.08),
+    inset 0 0.5px 0 rgba(255,255,255,0.7);
+  left: 2px; right: 2px;
+}
+
+.termin.open {
+  z-index: 15;
+  box-shadow:
+    0 0 0 2px rgba(26,25,21,0.85),
+    0 12px 32px rgba(26,25,21,0.15);
+}
+
+/* Layout: erste Zeile = Chips (EK, Navi), danach Titel mehrzeilig, dann Meta */
+.termin-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+}
+
+.termin .titel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.25px;
+  line-height: 1.25;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  margin-top: 2px;
+}
+
+.termin .meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.85;
+}
+
+.termin .meta .sep {
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.termin .sub {
+  font-size: 11px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.termin .sub .icon {
+  font-size: 12px;
+  flex-shrink: 0;
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* Kategorien — opaker damit Jetzt-Linie nicht durchscheint */
+.termin.kunde      { background: rgba(37,99,235,0.14);  color: var(--c-kunde); }
+.termin.lieferant  { background: rgba(124,58,237,0.14); color: var(--c-lieferant); }
+.termin.intern     { background: rgba(0,144,106,0.14);  color: var(--c-intern); }
+.termin.reise      { background: rgba(234,88,12,0.15);  color: var(--c-reise); }
+.termin.deadline   {
+  background: rgba(220,38,38,0.16);
+  color: var(--c-deadline);
+}
+.termin.privat     {
+  background: rgba(138,132,120,0.14);
+  color: var(--c-privat);
+}
+
+.termin.privat .titel { color: var(--text-2); font-style: italic; font-weight: 500; }
+
+/* EK Marker */
+.ek-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.9);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+
+/* PROFIT-NAVI Chip — prominenter, farbig getönt */
+.navi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-left: auto;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: -0.3px;
+  transition: all 0.15s var(--ease);
+}
+
+.navi-chip .nd {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.navi-chip.gruen  {
+  background: linear-gradient(135deg, rgba(0,144,106,0.18), rgba(0,144,106,0.11));
+  color: #006548;
+  box-shadow: 0 1px 2px rgba(0,144,106,0.15), inset 0 0 0 1px rgba(0,144,106,0.28);
+}
+.navi-chip.gruen .nd  { background: var(--navi-gruen); }
+
+.navi-chip.orange {
+  background: linear-gradient(135deg, rgba(217,119,6,0.18), rgba(217,119,6,0.11));
+  color: #92400e;
+  box-shadow: 0 1px 2px rgba(217,119,6,0.15), inset 0 0 0 1px rgba(217,119,6,0.30);
+}
+.navi-chip.orange .nd { background: var(--navi-orange); }
+
+.navi-chip.rot    {
+  background: linear-gradient(135deg, rgba(220,38,38,0.18), rgba(220,38,38,0.11));
+  color: #991b1b;
+  box-shadow: 0 1px 2px rgba(220,38,38,0.15), inset 0 0 0 1px rgba(220,38,38,0.30);
+}
+.navi-chip.rot .nd    { background: var(--navi-rot); }
+
+.termin:hover .navi-chip { transform: scale(1.05); }
+
+/* =====================================================
+   HOVER-ACTIONS — erscheinen ÜBER dem Termin
+   ===================================================== */
+.hover-bar {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(26,25,21,0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.18s var(--ease);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.hover-bar::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px; height: 10px;
+  background: rgba(26,25,21,0.95);
+}
+
+.termin:hover .hover-bar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hover-action {
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s var(--ease);
+  font-family: inherit;
+}
+
+.hover-action:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.hover-action.primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.hover-action.primary:hover { background: var(--brand-2); }
+
+/* =========================================================================
+   POPUP
+   ========================================================================= */
+.popup {
+  position: absolute;
+  width: 360px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-pop);
+  z-index: 50;
+  overflow: hidden;
+  animation: popIn 0.18s var(--ease);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.popup-head {
+  padding: 18px 20px 14px;
+  position: relative;
+}
+
+.popup-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 28px; height: 28px;
+  border: none;
+  background: rgba(26,25,21,0.05);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s var(--ease);
+}
+
+.popup-close:hover { background: rgba(26,25,21,0.1); color: var(--text); }
+
+.popup-kat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 10px;
+  background: rgba(26,25,21,0.06);
+}
+
+.popup-kat .kdot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.popup-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  padding-right: 28px;
+  color: var(--text);
+}
+
+.popup-sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-sub .mono {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* PROFIT-NAVI */
+.popup-navi {
+  margin: 0 18px 14px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(250,247,240,0.5));
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
+}
+
+.popup-navi::before {
+  content: '';
+  position: absolute;
+  top: -30%; right: -20%;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.popup-navi.gruen::before  { background: radial-gradient(circle, rgba(0,144,106,0.22), transparent 70%); }
+.popup-navi.orange::before { background: radial-gradient(circle, rgba(217,119,6,0.24), transparent 70%); }
+.popup-navi.rot::before    { background: radial-gradient(circle, rgba(220,38,38,0.22), transparent 70%); }
+
+.popup-navi-h {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-navi-h::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 2.5px var(--brand-soft);
+}
+
+.popup-navi-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.popup-navi-zahl {
+  font-size: 36px;
+  font-weight: 800;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.popup-navi-zahl.gruen  { background: linear-gradient(135deg, #00906a, #00a87a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.popup-navi-zahl.orange { color: var(--navi-orange); }
+.popup-navi-zahl.rot    { color: var(--navi-rot); }
+
+.popup-navi-unit {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 700;
+}
+
+.popup-navi-status {
+  margin-left: auto;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-radius: 100px;
+  color: #fff;
+}
+
+.popup-navi-status.gruen  { background: var(--navi-gruen); }
+.popup-navi-status.orange { background: var(--navi-orange); }
+.popup-navi-status.rot    { background: var(--navi-rot); }
+
+.popup-ampel {
+  position: relative;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.popup-ampel-bar {
+  display: flex;
+  height: 5px;
+  border-radius: 100px;
+  overflow: hidden;
+  gap: 1.5px;
+}
+
+.popup-ampel-bar .seg { border-radius: 100px; }
+.popup-ampel-bar .seg.rot    { background: var(--navi-rot);    flex: 70; }
+.popup-ampel-bar .seg.orange { background: var(--navi-orange); flex: 50; }
+.popup-ampel-bar .seg.gruen  { background: var(--navi-gruen);  flex: 60; }
+.popup-ampel-bar .seg.dgruen { background: #006548;            flex: 30; }
+
+.popup-ampel-marker {
+  position: absolute;
+  top: -3px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--text);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.popup-navi-sub {
+  display: flex;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(26,25,21,0.06);
+  flex-wrap: wrap;
+}
+
+.popup-navi-sub-item .lbl {
+  display: block;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.popup-navi-sub-item .val {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 12.5px;
+  letter-spacing: -0.3px;
+}
+
+/* Detail Rows — mit konsistenten Icons */
+.popup-body {
+  padding: 0 20px 8px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 12.5px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(26,25,21,0.05);
+}
+
+.detail-row:last-child { border-bottom: none; }
+
+.detail-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.detail-icon.location { background: rgba(37,99,235,0.10); color: var(--c-kunde); }
+.detail-icon.company { background: rgba(234,88,12,0.10); color: var(--c-reise); }
+.detail-icon.edit { background: rgba(219,39,119,0.10); color: var(--c-geburtstag); }
+.detail-icon.recur { background: rgba(124,58,237,0.10); color: var(--c-lieferant); }
+.detail-icon.video { background: rgba(0,144,106,0.10); color: var(--c-intern); }
+
+.detail-row .muted { color: var(--text-3); font-size: 11px; margin-left: 4px; }
+
+/* Teilnehmer */
+.participants {
+  padding: 12px 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid rgba(26,25,21,0.05);
+}
+
+.part-label {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+}
+
+.avatars {
+  display: flex;
+  margin-left: auto;
+}
+
+.av {
+  position: relative;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  border: 2px solid rgba(255,255,255,0.95);
+  margin-left: -8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.av:first-child { margin-left: 0; }
+.av.map { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.av.mp  { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.av.ek  { background: linear-gradient(135deg, #db2777, #be185d); }
+.av.ex  { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+.av .status-dot {
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.av .status-dot.yes { background: var(--navi-gruen); }
+.av .status-dot.no  { background: var(--navi-rot); }
+.av .status-dot.pending { background: var(--navi-orange); }
+
+/* Action Buttons */
+.popup-actions {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(26,25,21,0.05);
+  background: rgba(250,247,240,0.4);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.pa-btn {
+  padding: 10px 6px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 9px;
+  cursor: pointer;
+  border: 1px solid rgba(26,25,21,0.08);
+  background: rgba(255,255,255,0.8);
+  color: var(--text);
+  transition: all 0.12s var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  letter-spacing: -0.1px;
+}
+
+.pa-btn:hover { background: var(--surface); box-shadow: var(--shadow-xs); transform: translateY(-1px); }
+
+.pa-btn .ic { font-size: 13px; opacity: 0.85; }
+
+.pa-btn.primary {
+  background: linear-gradient(135deg, #00a87a, #00906a);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(0,144,106,0.25);
+}
+
+.pa-btn.primary:hover {
+  background: linear-gradient(135deg, #00906a, #006548);
+  box-shadow: 0 4px 12px rgba(0,144,106,0.35);
+}
+
+.pa-btn.primary .ic { opacity: 1; }
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+@media (max-width: 1100px) {
+  .command-bar { max-width: 320px; }
+  .command-placeholder-text { display: none; }
+}
+
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .top-nav .nav-item:nth-child(n+4) { display: none; }
+  .brand-block { min-width: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR mit prominent Command Palette -->
+<div class="topbar">
+  <div class="brand-block">
+    <div class="logo-mark">iF</div>
+    <div class="brand-text">
+      <div class="name">IMS Vertriebs GmbH</div>
+      <div class="sub">iFlow Platform</div>
+    </div>
+  </div>
+
+  <div class="top-nav">
+    <div class="nav-item">Dashboard</div>
+    <div class="nav-item active"><span class="dot"></span>Kalender</div>
+    <div class="nav-item">Angebote</div>
+    <div class="nav-item">Aufträge</div>
+    <div class="nav-item">Einstellungen</div>
+  </div>
+
+  <div class="command-bar">
+    <div class="command-input">
+      <span class="command-placeholder">Springe zu <span class="command-placeholder-text" id="cmdPlaceholder">"Kunde Schadner"</span></span>
+      <span class="command-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <button class="icon-btn" title="Benachrichtigungen">🔔<span class="badge">3</span></button>
+    <button class="user-chip" id="userChip" onclick="imsLogout();" title="Klick für Logout">
+      <span class="avatar" id="userAvatar">?</span>
+      <span id="userName">...</span>
+    </button>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+  <!-- SIDEBAR OHNE LINIEN -->
+  <div class="sidebar">
+
+    <div class="sb-section">
+      <div class="mini-cal" id="miniCal"></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">
+        <span>Kategorien</span>
+        <span class="ct">7/7</span>
+      </div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-kunde)"></span><span class="filter-label">Kundentermine</span><span class="filter-count">3</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-intern)"></span><span class="filter-label">Intern</span><span class="filter-count">3</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-lieferant)"></span><span class="filter-label">Lieferanten</span><span class="filter-count">1</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-reise)"></span><span class="filter-label">Reisen</span><span class="filter-count">1</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-deadline)"></span><span class="filter-label">Deadlines</span><span class="filter-count">1</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-geburtstag)"></span><span class="filter-label">Geburtstage</span><span class="filter-count">1</span></div>
+      <div class="filter-item on" onclick="toggleFilter(this)"><div class="filter-check"></div><span class="cat-dot" style="background:var(--c-privat)"></span><span class="filter-label">Privat</span><span class="filter-count">1</span></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Personen</div>
+      <div class="sb-item active"><span class="icon">◉</span>Alle<span class="count">11</span></div>
+      <div class="sb-item"><span class="icon" style="color:#d97706;">●</span>Mathias<span class="count">7</span></div>
+      <div class="sb-item"><span class="icon" style="color:#2563eb;">●</span>Michael<span class="count">3</span></div>
+      <div class="sb-item"><span class="icon" style="color:#db2777;">●</span>Elke<span class="count">1</span></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-head">
+      <div class="main-title" id="mainTitle">
+        <span id="titleRange">…</span>
+        <span class="kw" id="titleKw">KW –</span>
+      </div>
+      <div class="main-head-right">
+        <div class="view-switch">
+          <button class="view-switch-btn" onclick="setSegView(this)">Monat</button>
+          <button class="view-switch-btn active" onclick="setSegView(this)">Woche</button>
+          <button class="view-switch-btn" onclick="setSegView(this)">Tag</button>
+          <button class="view-switch-btn" onclick="setSegView(this)">Liste</button>
+        </div>
+        <div class="date-nav">
+          <button class="nav-btn" title="Zurück" onclick="imsWeek(-1);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+          <button class="today-btn" onclick="imsWeek(0);">Heute</button>
+          <button class="nav-btn" title="Weiter" onclick="imsWeek(1);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+        </div>
+        <button class="btn"><span style="color:var(--brand);font-size:10px;">●</span> ams.erp</button>
+        <button class="btn btn-primary" onclick="imsNeuerTermin();">Neuer Termin</button>
+      </div>
+    </div>
+
+    <div class="cal-card">
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="popupContainer"></div>
+
+<!-- Externe Libs + IMS-Module -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/date-helpers.js"></script>
+<script src="/js/termin-modal.js"></script>
+
+<script>
+/* =========================================================================
+   IMS Kalender · Produktiv-JS (ersetzt Prototyp-Mock)
+   Safari-safe: nur var / function / String-Concat / klassische for-Loops
+   ========================================================================= */
+
+var TERMINE = [];
+var TAGE = [];
+var REF_DATE = new Date();   // aktuelle Referenz-Woche
+var ME = null;               // { id, email }
+/* Legacy-Mock-Daten entfernt — Termine kommen jetzt aus der API */
+
+var KAT_LABELS = {
+  kunde: 'Kundentermin', lieferant: 'Lieferant', intern: 'Intern',
+  reise: 'Reise', deadline: 'Deadline', geburtstag: 'Geburtstag', privat: 'Privat'
+};
+
+var KAT_COLORS = {
+  kunde: '#2563eb', lieferant: '#7c3aed', intern: '#00906a',
+  reise: '#ea580c', deadline: '#dc2626', geburtstag: '#db2777', privat: '#8a8478'
+};
+
+var USER_NAMES = { map: 'Mathias', mp: 'Michael', ek: 'Elke', ex: 'Extern' };
+
+/* Command placeholder rotation */
+var PLACEHOLDER_TEXTS = [
+  '"Kunde Schadner"',
+  '"offene Angebote"',
+  '"neuer Termin heute"',
+  '"KW 18"',
+  '"Deadlines diese Woche"',
+  '"Huber anrufen"'
+];
+
+var placeholderIdx = 0;
+function rotatePlaceholder() {
+  placeholderIdx = (placeholderIdx + 1) % PLACEHOLDER_TEXTS.length;
+  var el = document.getElementById('cmdPlaceholder');
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(function() {
+      el.textContent = PLACEHOLDER_TEXTS[placeholderIdx];
+      el.style.opacity = '1';
+    }, 200);
+  }
+}
+setInterval(rotatePlaceholder, 3500);
+
+/* =========================================================================
+   MINI CAL
+   ========================================================================= */
+function renderMiniCal() {
+  var el = document.getElementById('miniCal');
+  var html = '';
+  html += '<div class="mini-cal-head">';
+  html += '<button onclick="return false" aria-label="Vorheriger Monat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>';
+  var monatName = (window.imsDate ? window.imsDate.MONATE_LANG[REF_DATE.getMonth()] : 'Monat');
+  html += '<div class="mini-cal-month">' + monatName + ' ' + REF_DATE.getFullYear() + '</div>';
+  html += '<button onclick="return false" aria-label="Nächster Monat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>';
+  html += '</div>';
+
+  html += '<div class="mini-cal-grid">';
+  var wds = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+  for (var i = 0; i < wds.length; i++) html += '<div class="mini-cal-wd">' + wds[i] + '</div>';
+
+  var days = [
+    {d:30,om:true},{d:31,om:true},{d:1},{d:2},{d:3},{d:4},{d:5},
+    {d:6},{d:7},{d:8},{d:9},{d:10},{d:11},{d:12},
+    {d:13},{d:14},{d:15},{d:16},{d:17},{d:18},{d:19},
+    {d:20,today:true,cw:true,ev:true},{d:21,cw:true,ev:true},{d:22,cw:true,ev:true},{d:23,cw:true,ev:true},{d:24,cw:true,ev:true},{d:25,cw:true},{d:26,cw:true},
+    {d:27},{d:28},{d:29},{d:30},{d:1,om:true},{d:2,om:true},{d:3,om:true}
+  ];
+
+  for (var j = 0; j < days.length; j++) {
+    var dy = days[j];
+    var cls = 'mini-cal-day';
+    if (dy.om) cls += ' other-month';
+    if (dy.cw) cls += ' current-week';
+    if (dy.today) cls += ' today';
+    if (dy.ev) cls += ' has-event';
+    html += '<div class="' + cls + '">' + dy.d + '</div>';
+  }
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+/* =========================================================================
+   RENDER CALENDAR
+   ========================================================================= */
+function renderCalendar() {
+  var grid = document.getElementById('calGrid');
+  var html = '';
+  var slotH = 64;
+
+  html += '<div class="cal-corner"></div>';
+  for (var i = 0; i < TAGE.length; i++) {
+    var t = TAGE[i];
+    html += '<div class="day-head' + (t.today ? ' today' : '') + '">'
+         +    '<div class="wd">' + t.wd + '</div>'
+         +    '<div class="dt-nr">' + t.dt + '</div>'
+         +  '</div>';
+  }
+
+  html += '<div class="allday-row">';
+  html += '<div class="allday-label"></div>';
+  for (var d = 0; d < 5; d++) {
+    html += '<div class="allday-cell">';
+    for (var j = 0; j < TERMINE.length; j++) {
+      var tm = TERMINE[j];
+      if (tm.tag === d && tm.allday) {
+        var adIcon = tm.kat === 'geburtstag' ? '🎂' : (tm.kat === 'reise' ? '✈' : '●');
+        html += '<div class="termin-allday ' + tm.kat + '" onclick="openPopup(event, \'' + tm.id + '\')">' + adIcon + ' ' + tm.titel + '</div>';
+      }
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  /* Zeit-Spalte mit JETZT-Pill */
+  html += '<div class="time-col">';
+  for (var h = 6; h <= 18; h++) {
+    html += '<div class="time-slot">' + (h < 10 ? '0' : '') + h + ':00</div>';
+  }
+  /* Jetzt-Pill: 10:45 = 4h 45min nach 6:00 = position */
+  var pillTop = 8 + ((10 - 6) * 60 + 45) / 60 * slotH;
+  html += '<div class="now-time-pill" style="top:' + pillTop + 'px;">10:45</div>';
+  html += '</div>';
+
+  /* Day-Cols */
+  for (var dd = 0; dd < 5; dd++) {
+    var isToday = TAGE[dd].today;
+    html += '<div class="day-col' + (isToday ? ' today' : '') + '">';
+    for (var hl = 0; hl <= 12; hl++) {
+      html += '<div class="hour-line" style="top:' + (8 + hl * slotH) + 'px"></div>';
+    }
+    /* Now-Line in JEDER Day-Col für durchgehende gestrichelte Linie */
+    var nowTop = 8 + ((10 - 6) * 60 + 45) / 60 * slotH;
+    html += '<div class="now-line" style="top:' + nowTop + 'px"></div>';
+    var idx = 0;
+    for (var k = 0; k < TERMINE.length; k++) {
+      var tm2 = TERMINE[k];
+      if (tm2.tag === dd && !tm2.allday) {
+        var top = 8 + (tm2.startH - 6) * slotH;
+        var height = (tm2.endH - tm2.startH) * slotH - 4;
+        html += renderTermin(tm2, top, height, idx);
+        idx++;
+      }
+    }
+    html += '</div>';
+  }
+
+  grid.innerHTML = html;
+}
+
+function renderTermin(t, top, height, idx) {
+  var zeit = hourToStr(t.startH) + '–' + hourToStr(t.endH);
+  var marker = t.ekMarker ? '<span class="ek-marker">EK</span>' : '';
+  var navi = '';
+  if (t.kat === 'kunde' && t.kunde) {
+    navi = '<span class="navi-chip ' + t.kunde.navi + '">'
+         + '<span class="nd"></span>' + t.kunde.reh + ' €/h'
+         + '</span>';
+  }
+
+  /* Top-row: Marker + Navi */
+  var topRow = '';
+  if (marker || navi) {
+    topRow = '<div class="termin-top">' + marker + '<span style="flex:1;"></span>' + navi + '</div>';
+  }
+
+  /* Sub-Zeile (Ort/Video-Hinweis) bei größeren Cards */
+  var subHtml = '';
+  if (t.sub && height >= 70) {
+    var subIcon = '';
+    if (t.videoCall) subIcon = '<span class="icon" style="color:var(--c-intern);">⬢</span>';
+    else if (t.ort) subIcon = '<span class="icon" style="color:var(--c-kunde);">⌖</span>';
+    subHtml = '<div class="sub">' + subIcon + t.sub + '</div>';
+  }
+
+  /* Hover-Actions — je nach Kategorie angepasst */
+  var hoverActions = '';
+  if (t.kat === 'kunde') {
+    hoverActions = '<div class="hover-bar">'
+                 + '<button class="hover-action" title="Anrufen">☎</button>'
+                 + '<button class="hover-action" title="Bearbeiten">✎</button>'
+                 + '<button class="hover-action" title="Navigieren">⌖</button>'
+                 + '<button class="hover-action primary" title="Öffnen">→</button>'
+                 + '</div>';
+  } else if (t.kat === 'reise') {
+    hoverActions = '<div class="hover-bar">'
+                 + '<button class="hover-action" title="Route">⌖</button>'
+                 + '<button class="hover-action" title="Bearbeiten">✎</button>'
+                 + '<button class="hover-action primary" title="Öffnen">→</button>'
+                 + '</div>';
+  } else if (t.kat !== 'privat') {
+    hoverActions = '<div class="hover-bar">'
+                 + '<button class="hover-action" title="Bearbeiten">✎</button>'
+                 + '<button class="hover-action primary" title="Öffnen">→</button>'
+                 + '</div>';
+  }
+
+  var delay = (idx || 0) * 40 + 250;
+
+  var html = '<div class="termin ' + t.kat + '" data-id="' + t.id + '" '
+           + 'style="top:' + top + 'px;height:' + height + 'px;animation-delay:' + delay + 'ms;" '
+           + 'onclick="openPopup(event, \'' + t.id + '\')">'
+           +   hoverActions
+           +   topRow
+           +   '<div class="titel">' + t.titel + '</div>'
+           +   '<div class="meta">' + zeit + '</div>'
+           +   subHtml
+           + '</div>';
+  return html;
+}
+
+function hourToStr(h) {
+  var hh = Math.floor(h);
+  var mm = Math.round((h - hh) * 60);
+  return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+}
+
+function formatEur(n) { return n.toLocaleString('de-AT') + ' €'; }
+
+/* =========================================================================
+   POPUP
+   ========================================================================= */
+function openPopup(event, id) {
+  event.stopPropagation();
+  closePopup();
+
+  var termin = null;
+  for (var i = 0; i < TERMINE.length; i++) if (TERMINE[i].id === id) termin = TERMINE[i];
+  if (!termin) return;
+
+  var terminEl = event.currentTarget;
+  terminEl.classList.add('open');
+
+  var zeit = termin.allday ? 'ganztägig' : hourToStr(termin.startH) + ' – ' + hourToStr(termin.endH);
+  var tag = TAGE[termin.tag];
+  var katColor = KAT_COLORS[termin.kat];
+  var katLabel = KAT_LABELS[termin.kat];
+
+  var html = '<div class="popup" id="thePopup">';
+
+  html += '<div class="popup-head">';
+  html += '<button class="popup-close" onclick="closePopup()">✕</button>';
+  html += '<div class="popup-kat" style="color:' + katColor + ';">'
+       + '<span class="kdot" style="background:' + katColor + ';"></span>' + katLabel + '</div>';
+  html += '<div class="popup-title">' + termin.titel + '</div>';
+  var monatIdx = (termin._raw ? new Date(termin._raw.start_zeit).getMonth() : new Date().getMonth());
+  var monatStr = (window.imsDate ? window.imsDate.MONATE_LANG[monatIdx] : '');
+  html += '<div class="popup-sub">' + tag.wd + ', ' + tag.dt + '. ' + monatStr + ' · <span class="mono">' + zeit + '</span></div>';
+  html += '</div>';
+
+  if (termin.kat === 'kunde' && termin.kunde) {
+    var k = termin.kunde;
+    var statusTxt = { gruen: 'Gesund', orange: 'Überleben', rot: 'Verlust' }[k.navi];
+    var markerPct = Math.min(96, Math.max(3, (k.reh / 210) * 100));
+    var avgAuftrag = Math.round(k.umsatz12m / k.auftraege12m);
+
+    html += '<div class="popup-navi ' + k.navi + '">';
+    html += '<div class="popup-navi-h">PROFIT-NAVI · 12 Monate</div>';
+    html += '<div class="popup-navi-main">';
+    html += '<span class="popup-navi-zahl ' + k.navi + '">' + k.reh + '</span>';
+    html += '<span class="popup-navi-unit">€/h</span>';
+    html += '<span class="popup-navi-status ' + k.navi + '">' + statusTxt + '</span>';
+    html += '</div>';
+    html += '<div class="popup-ampel">';
+    html += '<div class="popup-ampel-bar">';
+    html += '<div class="seg rot"></div><div class="seg orange"></div>';
+    html += '<div class="seg gruen"></div><div class="seg dgruen"></div>';
+    html += '</div>';
+    html += '<div class="popup-ampel-marker" style="left:calc(' + markerPct + '% - 5px)"></div>';
+    html += '</div>';
+    html += '<div class="popup-navi-sub">';
+    html += '<div class="popup-navi-sub-item"><span class="lbl">Umsatz 12M</span><span class="val">' + formatEur(k.umsatz12m) + '</span></div>';
+    html += '<div class="popup-navi-sub-item"><span class="lbl">Aufträge</span><span class="val">' + k.auftraege12m + '</span></div>';
+    html += '<div class="popup-navi-sub-item"><span class="lbl">Ø Auftrag</span><span class="val">' + formatEur(avgAuftrag) + '</span></div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="popup-body">';
+  if (termin.ort) {
+    var iconClass = termin.videoCall ? 'video' : 'location';
+    var iconChar = termin.videoCall ? '⬢' : '⌖';
+    html += '<div class="detail-row"><span class="detail-icon ' + iconClass + '">' + iconChar + '</span>' + termin.ort + '</div>';
+  }
+  if (termin.kat === 'kunde' && termin.kunde) {
+    html += '<div class="detail-row"><span class="detail-icon company">▢</span>' + termin.kunde.name + '<span class="muted">· ' + termin.kunde.nr + '</span></div>';
+  }
+  if (termin.ekMarker) {
+    html += '<div class="detail-row"><span class="detail-icon edit">✎</span>Angelegt von Elke<span class="muted">· für Michael</span></div>';
+  }
+  if (termin.recurring) {
+    html += '<div class="detail-row"><span class="detail-icon recur">⟲</span>' + termin.recurring + '</div>';
+  }
+  html += '</div>';
+
+  if (termin.teilnehmer && termin.teilnehmer.length) {
+    html += '<div class="participants">';
+    html += '<span class="part-label">Teilnehmer</span>';
+    html += '<div class="avatars">';
+    for (var p = 0; p < termin.teilnehmer.length; p++) {
+      var tp = termin.teilnehmer[p];
+      var initial = tp.u === 'ex' ? 'E' : USER_NAMES[tp.u].charAt(0);
+      html += '<span class="av ' + tp.u + '" title="' + USER_NAMES[tp.u] + '">'
+           + initial
+           + '<span class="status-dot ' + tp.s + '"></span>'
+           + '</span>';
+    }
+    html += '</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="popup-actions">';
+  if (termin.kat === 'kunde') {
+    html += '<button class="pa-btn"><span class="ic">☎</span>Kontakt</button>';
+    html += '<button class="pa-btn"><span class="ic">⌖</span>Route</button>';
+    html += '<button class="pa-btn primary"><span class="ic">✎</span>Bearbeiten</button>';
+  } else if (termin.kat !== 'privat') {
+    html += '<button class="pa-btn"><span class="ic">☎</span>Kontakt</button>';
+    html += '<button class="pa-btn"><span class="ic">✎</span>Bearbeiten</button>';
+    html += '<button class="pa-btn primary"><span class="ic">→</span>Öffnen</button>';
+  } else {
+    html += '<button class="pa-btn" style="grid-column:1/-1">Schließen</button>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+
+  document.getElementById('popupContainer').innerHTML = html;
+  positionPopup(terminEl);
+
+  setTimeout(function() {
+    document.addEventListener('click', outsideClick);
+  }, 50);
+}
+
+function positionPopup(anchorEl) {
+  var popup = document.getElementById('thePopup');
+  if (!popup) return;
+
+  var anchor = anchorEl.getBoundingClientRect();
+  var popupW = 360;
+  var popupH = popup.offsetHeight;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+  var gap = 12;
+
+  var placeRight = (anchor.right + gap + popupW) < vw;
+  var left = placeRight ? (anchor.right + gap + window.scrollX) : (anchor.left - gap - popupW + window.scrollX);
+  if (!placeRight && left < 10) left = 10;
+
+  var top = anchor.top + window.scrollY;
+  if (top + popupH > window.scrollY + vh - 20) {
+    top = window.scrollY + vh - popupH - 20;
+  }
+  if (top < window.scrollY + 70) top = window.scrollY + 70;
+
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+
+function closePopup() {
+  var c = document.getElementById('popupContainer');
+  c.innerHTML = '';
+  var opens = document.querySelectorAll('.termin.open');
+  for (var i = 0; i < opens.length; i++) opens[i].classList.remove('open');
+  document.removeEventListener('click', outsideClick);
+}
+
+function outsideClick(e) {
+  if (e.target.closest('.popup')) return;
+  if (e.target.closest('.termin')) return;
+  if (e.target.closest('.termin-allday')) return;
+  closePopup();
+}
+
+function setView(el) {
+  var items = el.parentNode.querySelectorAll('.sb-item');
+  for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+  el.classList.add('active');
+}
+
+function setSegView(el) {
+  var btns = el.parentNode.querySelectorAll('.view-switch-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  el.classList.add('active');
+}
+
+function toggleFilter(el) {
+  if (el.classList.contains('on')) el.classList.remove('on');
+  else el.classList.add('on');
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closePopup();
+});
+
+window.addEventListener('resize', closePopup);
+
+/* =========================================================================
+   IMS API-Anbindung · Wochen-Nav · User-Session
+   ========================================================================= */
+
+function imsUpdateTitle() {
+  var wt = window.imsDate.wochenTage(REF_DATE);
+  var first = wt[0].datum;
+  var last = wt[4].datum;
+  var monateGleich = first.getMonth() === last.getMonth();
+  var rangeStr;
+  if (monateGleich) {
+    rangeStr = first.getDate() + '. – ' + last.getDate() + '. ' + window.imsDate.MONATE_LANG[first.getMonth()];
+  } else {
+    rangeStr = first.getDate() + '. ' + window.imsDate.MONATE_KURZ[first.getMonth()]
+             + ' – ' + last.getDate() + '. ' + window.imsDate.MONATE_KURZ[last.getMonth()];
+  }
+  var titleEl = document.getElementById('titleRange');
+  var kwEl = document.getElementById('titleKw');
+  if (titleEl) titleEl.textContent = rangeStr;
+  if (kwEl)    kwEl.textContent = 'KW ' + window.imsDate.kwIso(REF_DATE);
+
+  // TAGE für renderCalendar bereitstellen (mit formatiertem dt)
+  TAGE = [];
+  for (var i = 0; i < wt.length; i++) {
+    TAGE.push({ wd: wt[i].wd, dt: (wt[i].dt < 10 ? '0' : '') + wt[i].dt, today: wt[i].today });
+  }
+}
+
+function imsLadeTermine() {
+  var wt = window.imsDate.wochenTage(REF_DATE);
+  var von = wt[0].ymd;
+  var bisD = new Date(wt[4].datum.getTime());
+  bisD.setHours(23, 59, 59, 999);
+  var bis = window.imsDate.fmtYMD(bisD);
+
+  window.imsAPI.termine.liste(von, bis).then(function(result) {
+    if (!result.success) {
+      console.error('API-Fehler:', result.error);
+      TERMINE = [];
+      renderCalendar();
+      return;
+    }
+    var meId = ME ? ME.id : null;
+    TERMINE = window.imsDate.mapApiToTermine(result.data || [], REF_DATE, meId);
+    renderCalendar();
+  });
+}
+
+function imsWeek(delta) {
+  if (delta === 0) {
+    REF_DATE = new Date();
+  } else {
+    REF_DATE = new Date(REF_DATE.getTime() + delta * 7 * 86400000);
+  }
+  imsUpdateTitle();
+  renderMiniCal();
+  imsLadeTermine();
+}
+
+function imsNeuerTermin() {
+  window.imsModal.open(null, {
+    onSave: function() { imsLadeTermine(); }
+  });
+}
+
+function imsBearbeiten(id) {
+  var found = null;
+  for (var i = 0; i < TERMINE.length; i++) {
+    if (TERMINE[i].id === id) { found = TERMINE[i]; break; }
+  }
+  if (!found) return;
+  var raw = found._raw || {};
+  window.imsModal.open(raw, {
+    onSave:   function() { closePopup(); imsLadeTermine(); },
+    onDelete: function() { closePopup(); imsLadeTermine(); }
+  });
+}
+
+function imsLogout() {
+  if (!window.imsSupabase) return;
+  window.imsSupabase.auth.signOut().then(function() {
+    window.localStorage.removeItem('ims-kalender-auth');
+    window.location.href = '/index.html';
+  });
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+(function imsBoot() {
+  if (!window.imsSupabase) {
+    console.error('Supabase-Client nicht initialisiert');
+    return;
+  }
+  window.imsSupabase.auth.getSession().then(function(r) {
+    var sess = r && r.data ? r.data.session : null;
+    if (!sess) {
+      window.location.href = '/index.html?reason=unauthorized';
+      return;
+    }
+    // User-Chip befüllen
+    ME = { id: sess.user.id, email: sess.user.email };
+    var emailName = (sess.user.email || '').split('@')[0].split('.')[0];
+    var niceName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    var avatarEl = document.getElementById('userAvatar');
+    var nameEl   = document.getElementById('userName');
+    if (avatarEl) avatarEl.textContent = niceName.charAt(0);
+    if (nameEl)   nameEl.textContent = niceName;
+
+    // Auf Token-Refresh reagieren
+    window.imsSupabase.auth.onAuthStateChange(function(evt, newSession) {
+      if (!newSession) window.location.href = '/index.html?reason=unauthorized';
+    });
+
+    imsUpdateTitle();
+    renderMiniCal();
+    imsLadeTermine();
+  });
+})();
+
+/* Popup "Bearbeiten"-Button delegieren */
+document.addEventListener('click', function(ev) {
+  var btn = ev.target && ev.target.closest ? ev.target.closest('.pa-btn.primary') : null;
+  if (!btn) return;
+  // Nur wenn der Text "Bearbeiten" ist
+  if ((btn.textContent || '').indexOf('Bearbeiten') === -1) return;
+  // Aktuellen Popup-Termin finden — durchsuche TERMINE nach dem .termin.open
+  var offen = document.querySelector('.termin.open');
+  if (!offen) return;
+  var id = offen.getAttribute('data-id');
+  if (id) imsBearbeiten(id);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iFlow Kalender · Anmelden</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:"Inter",sans-serif;
+  background:#f7f4ee;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(0,168,122,0.08), transparent 40%),
+    radial-gradient(circle at 88% 92%, rgba(234,88,12,0.06), transparent 40%);
+  color:#1a1915;
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:-0.01em;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+}
+.login-card{
+  background:rgba(255,255,255,0.82);
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  border-radius:22px;
+  padding:36px 32px 28px;
+  width:100%;
+  max-width:400px;
+  box-shadow:0 24px 56px rgba(26,25,21,0.12), 0 8px 16px rgba(26,25,21,0.05);
+}
+.logo{
+  display:flex;align-items:center;gap:12px;margin-bottom:28px;
+}
+.logo-mark{
+  width:42px;height:42px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#00a87a 0%,#00906a 60%,#006548 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:16px;
+  box-shadow:0 4px 12px rgba(0,144,106,0.3),inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.logo-txt .name{font-size:15px;font-weight:700;}
+.logo-txt .sub{font-size:11px;color:#7a7266;font-weight:500;margin-top:2px;}
+
+h1{font-size:22px;font-weight:700;letter-spacing:-0.4px;margin-bottom:6px;}
+p.lead{font-size:13px;color:#52493e;margin-bottom:22px;line-height:1.5;}
+
+label{display:block;font-size:11px;font-weight:600;color:#52493e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+input[type=email]{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(26,25,21,0.1);
+  background:#faf7f0;
+  font-family:"Inter",sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:all 0.15s;
+}
+input[type=email]:focus{
+  border-color:#00906a;background:#fff;
+  box-shadow:0 0 0 3px rgba(0,144,106,0.12);
+}
+
+.btn{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  border:none;
+  background:linear-gradient(135deg,#00a87a,#00906a);
+  color:#fff;
+  font-weight:600;font-size:14px;
+  font-family:inherit;
+  cursor:pointer;
+  margin-top:14px;
+  box-shadow:0 4px 12px rgba(0,144,106,0.28);
+  transition:all 0.15s;
+}
+.btn:hover{background:linear-gradient(135deg,#00906a,#006548);box-shadow:0 6px 18px rgba(0,144,106,0.38);transform:translateY(-1px);}
+.btn:disabled{opacity:0.6;cursor:wait;transform:none;}
+
+.msg{margin-top:14px;padding:11px 13px;border-radius:10px;font-size:13px;line-height:1.45;}
+.msg.ok{background:rgba(0,144,106,0.1);color:#006548;}
+.msg.err{background:rgba(220,38,38,0.1);color:#991b1b;}
+
+.foot{margin-top:28px;padding-top:18px;border-top:1px solid rgba(26,25,21,0.05);font-size:11px;color:#a8a094;text-align:center;}
+.foot a{color:#52493e;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">
+    <div class="logo-mark">iF</div>
+    <div class="logo-txt">
+      <div class="name">IMS Vertriebs GmbH</div>
+      <div class="sub">iFlow Kalender</div>
+    </div>
+  </div>
+
+  <h1>Anmelden</h1>
+  <p class="lead">E-Mail eingeben, Magic-Link kommt per Mail. Ein Klick — drin.</p>
+
+  <form id="loginForm" onsubmit="return sendLink(event);">
+    <label for="email">E-Mail</label>
+    <input id="email" type="email" required autocomplete="email" placeholder="vorname.nachname@ims-box.at">
+    <button id="submitBtn" class="btn" type="submit">Magic-Link senden</button>
+  </form>
+
+  <div id="msg"></div>
+
+  <div class="foot">
+    IMS Vertriebs GmbH &amp; Co KG · <a href="https://ims-box.at">ims-box.at</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+// Safari-safe: nur var / function
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('reason') === 'unauthorized') {
+    showMsg('err', 'Session abgelaufen. Bitte erneut anmelden.');
+  }
+
+  // Bestehende Session? → direkt weiter
+  if (window.imsSupabase) {
+    window.imsSupabase.auth.getSession().then(function(r) {
+      if (r.data && r.data.session) {
+        window.location.href = '/kalender.html';
+      }
+    });
+  }
+})();
+
+function sendLink(ev) {
+  ev.preventDefault();
+  var email = document.getElementById('email').value.trim();
+  var btn = document.getElementById('submitBtn');
+  if (!email) return false;
+
+  btn.disabled = true;
+  btn.textContent = 'Wird gesendet...';
+
+  window.imsSupabase.auth.signInWithOtp({
+    email: email,
+    options: {
+      emailRedirectTo: window.location.origin + '/kalender.html'
+    }
+  }).then(function(r) {
+    btn.disabled = false;
+    btn.textContent = 'Magic-Link senden';
+    if (r.error) {
+      showMsg('err', 'Fehler: ' + r.error.message);
+    } else {
+      showMsg('ok', 'Link geschickt an ' + email + '. Mailbox checken.');
+      document.getElementById('email').value = '';
+    }
+  });
+
+  return false;
+}
+
+function showMsg(type, text) {
+  var el = document.getElementById('msg');
+  el.innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
+}
+</script>
+</body>
+</html>

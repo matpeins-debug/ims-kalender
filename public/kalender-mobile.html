@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMS Kalender · Mobile · Termin-Detail (Außendienst)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --text:    #1a1915;
+  --text-2:  #5a544a;
+  --text-3:  #8a8478;
+  --text-4:  #b8b2a4;
+  --brand:   #00906a;
+  --navi-gruen:  #00906a;
+  --navi-orange: #d97706;
+  --navi-rot:    #dc2626;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html, body { height: 100%; }
+
+body {
+  background: #1a1915;
+  background-image:
+    radial-gradient(circle at 20% 20%, #2d3a2f 0%, #1a1915 50%),
+    radial-gradient(circle at 80% 80%, #3a2a1a 0%, transparent 50%);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.showcase-header {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.6;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.showcase-header strong { color: #00d9a7; letter-spacing: 0; text-transform: none; }
+
+/* =========================================================================
+   iPhone Frame
+   ========================================================================= */
+.phone-frame {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100vh;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.phone-frame::before { display: none; }
+
+/* Screen */
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  border-radius: 0;
+  overflow: visible;
+  position: relative;
+  background: #fbf8f2;
+  background-image:
+    radial-gradient(circle at 20% 10%, #e7f4ed 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, #fff1e6 0%, transparent 40%),
+    radial-gradient(circle at 50% 85%, #f5f0ff 0%, transparent 45%),
+    linear-gradient(180deg, #faf7f0 0%, #f5ede0 100%);
+}
+
+/* Status-Bar */
+.status-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px 0;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a1915;
+  z-index: 10;
+}
+
+.status-bar .right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Scrollable Content Container */
+.content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding-top: 54px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =========================================================================
+   Header (Back + Kontextsignal)
+   ========================================================================= */
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px 20px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(250,247,240,0.7);
+  z-index: 8;
+}
+
+.back-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+}
+
+.nav-label {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.nav-label strong {
+  color: var(--text);
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.nav-dots {
+  margin-left: auto;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nav-dots span {
+  width: 3px; height: 3px;
+  background: var(--text);
+  border-radius: 50%;
+  box-shadow: 0 6px 0 var(--text), 0 -6px 0 var(--text);
+}
+
+/* =========================================================================
+   Countdown Banner
+   ========================================================================= */
+.countdown {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, #00a87a 0%, #00906a 60%, #006548 100%);
+  border-radius: 20px;
+  padding: 16px 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0,144,106,0.35), 0 4px 10px rgba(0,144,106,0.2);
+}
+
+.countdown::before {
+  content: '';
+  position: absolute;
+  top: -40%; right: -20%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  border-radius: 50%;
+}
+
+.countdown-left { z-index: 2; }
+
+.countdown-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.countdown-time {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.countdown-time .mins {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-left: 4px;
+  letter-spacing: 0;
+}
+
+.countdown-icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 2;
+  animation: pulse 2s infinite var(--ease);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(255,255,255,0); }
+}
+
+/* =========================================================================
+   Hero Card (Termin)
+   ========================================================================= */
+.hero {
+  margin: 0 16px 16px;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 24px;
+  padding: 22px 22px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.hero-kat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(37,99,235,0.12);
+  color: #1e40af;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
+}
+
+.hero-kat .kd { width: 6px; height: 6px; border-radius: 50%; background: #2563eb; }
+
+.hero-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.hero-when {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.hero-when .when-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-when .icon { font-size: 14px; opacity: 0.7; }
+
+/* =========================================================================
+   PROFIT-NAVI Panel (groß)
+   ========================================================================= */
+.navi-card {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(231,244,237,0.7) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 24px rgba(0,144,106,0.08), 0 1px 3px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.navi-card::before {
+  content: '';
+  position: absolute;
+  top: -30%; right: -20%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,144,106,0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.navi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.navi-head-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navi-head-label::before {
+  content: '';
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px #e7f4ed;
+}
+
+.navi-status {
+  background: var(--brand);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.navi-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.navi-zahl {
+  font-size: 56px;
+  font-weight: 900;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: -3px;
+  line-height: 1;
+  color: var(--brand);
+  background: linear-gradient(135deg, #00906a, #00a87a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navi-unit {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.navi-trend {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--brand);
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  background: rgba(0,144,106,0.1);
+  padding: 4px 8px;
+  border-radius: 100px;
+  align-self: center;
+}
+
+.navi-skala {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.navi-skala-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 100px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.navi-skala-bar .seg { border-radius: 100px; }
+.navi-skala-bar .seg.r { background: var(--navi-rot);    flex: 70; }
+.navi-skala-bar .seg.o { background: var(--navi-orange); flex: 50; }
+.navi-skala-bar .seg.g { background: var(--navi-gruen);  flex: 60; }
+.navi-skala-bar .seg.d { background: #006548;            flex: 30; }
+
+.navi-skala-marker {
+  position: absolute;
+  top: -4px;
+  left: 67%;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--text);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.navi-stats {
+  display: flex;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  position: relative;
+  z-index: 2;
+}
+
+.navi-stat {
+  flex: 1;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.navi-stat .lbl {
+  font-size: 9.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.navi-stat .val {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+/* =========================================================================
+   Info-Cards (Ort, Kontakt, Historie)
+   ========================================================================= */
+.info-grid {
+  padding: 0 16px;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.info-card {
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+}
+
+.info-card:active { transform: scale(0.99); }
+
+.info-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.info-icon.map { background: rgba(37,99,235,0.12); color: #1e40af; }
+.info-icon.person { background: rgba(219,39,119,0.12); color: #be185d; }
+.info-icon.history { background: rgba(124,58,237,0.12); color: #6b21a8; }
+.info-icon.docs { background: rgba(234,88,12,0.12); color: #9a3412; }
+
+.info-text { flex: 1; min-width: 0; }
+
+.info-label {
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.info-chevron {
+  color: var(--text-4);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.info-badge {
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: rgba(234,88,12,0.12);
+  color: #c2410c;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  flex-shrink: 0;
+}
+
+/* =========================================================================
+   Teilnehmer-Leiste
+   ========================================================================= */
+.participants {
+  padding: 0 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.part-label {
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+}
+
+.avs {
+  display: flex;
+  margin-left: auto;
+}
+
+.av {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  border: 2px solid rgba(255,255,255,0.9);
+  margin-left: -8px;
+}
+
+.av:first-child { margin-left: 0; }
+.av.mp  { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.av.ex  { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+/* Scroll-Puffer damit Content nicht unter der Daumenzone hängt */
+.bottom-spacer { height: 180px; }
+
+/* =========================================================================
+   DAUMENZONE — Fixed Bottom Action Bar
+   ========================================================================= */
+.action-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 14px 16px 34px;
+  background: rgba(250,247,240,0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255,255,255,0.8);
+  z-index: 15;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.04);
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.quick-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+}
+
+.quick-btn:active { transform: scale(0.95); }
+
+.quick-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.quick-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: -0.1px;
+}
+
+/* Primary FAB — Route starten */
+.primary-action {
+  width: 100%;
+  height: 62px;
+  background: linear-gradient(135deg, #00a87a 0%, #00906a 60%, #006548 100%);
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  font-family: "Inter", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow:
+    0 8px 24px rgba(0,144,106,0.4),
+    0 4px 12px rgba(0,144,106,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.15s var(--ease);
+}
+
+.primary-action::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(35deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(35deg); }
+  100% { transform: translateX(100%) rotate(35deg); }
+}
+
+.primary-action:active { transform: scale(0.98); }
+
+.primary-action .icon {
+  font-size: 20px;
+  z-index: 2;
+}
+
+.primary-action .label { z-index: 2; }
+
+.primary-action .meta {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.85;
+  margin-left: auto;
+  z-index: 2;
+  font-family: "JetBrains Mono", monospace;
+  background: rgba(255,255,255,0.15);
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+/* Home-Indicator (iPhone) */
+.home-ind {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px; height: 5px;
+  background: rgba(26,25,21,0.3);
+  border-radius: 100px;
+  z-index: 20;
+}
+
+/* =========================================================================
+   Scroll-Hint (dezent, oben)
+   ========================================================================= */
+.scroll-hint {
+  position: absolute;
+  bottom: 170px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid rgba(0,0,0,0.05);
+  z-index: 10;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   Infos neben Phone (Annotationen, optional)
+   ========================================================================= */
+.annotation {
+  position: absolute;
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255,255,255,0.6);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  max-width: 180px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.annotation strong { color: #00d9a7; font-weight: 600; }
+
+.annotation .arrow {
+  display: inline-block;
+  color: rgba(255,255,255,0.3);
+  margin: 0 4px;
+}
+
+@media (max-width: 900px) {
+  .annotation { display: none; }
+  body { padding: 20px 8px; }
+  .phone-frame { transform: scale(0.9); }
+}
+</style>
+</head>
+<body>
+
+<!-- iFlow Mobile -->
+<div class="phone-frame">
+
+  <div class="screen">
+
+    <!-- Scrollable Content -->
+    <div class="content">
+
+      <!-- Navigation -->
+      <div class="nav">
+        <button class="back-btn" onclick="history.length > 1 ? history.back() : (window.location.href='/kalender.html')">‹</button>
+        <div>
+          <div class="nav-label" style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;">Termin</div>
+          <div class="nav-label" id="navDate"><strong>…</strong></div>
+        </div>
+        <button class="nav-dots"><span></span></button>
+      </div>
+
+      <!-- Countdown Banner -->
+      <div class="countdown" id="countdownBanner" style="display:none;">
+        <div class="countdown-left">
+          <div class="countdown-label">Startet in</div>
+          <div class="countdown-time" id="countdownTime">—<span class="mins">min</span></div>
+        </div>
+        <div class="countdown-icon">⏱️</div>
+      </div>
+
+      <!-- Hero Card -->
+      <div class="hero">
+        <div class="hero-kat" id="heroKat">
+          <span class="kd"></span> Termin
+        </div>
+        <div class="hero-title" id="heroTitel">…</div>
+        <div class="hero-sub" id="heroSub" style="display:none;"></div>
+        <div class="hero-when">
+          <div class="when-block"><span class="icon">🕐</span> <span id="heroZeit">—</span></div>
+          <div class="when-block"><span class="icon">⏳</span> <span id="heroDauer">—</span></div>
+        </div>
+      </div>
+
+      <!-- PROFIT-NAVI Card (nur bei Kundenterminen · Phase 2: Live aus Qlik) -->
+      <div class="navi-card" id="naviCard" style="display:none;">
+        <div class="navi-head">
+          <div class="navi-head-label">PROFIT-NAVI · 12 Monate</div>
+          <div class="navi-status" id="naviStatus">—</div>
+        </div>
+        <div class="navi-value">
+          <span class="navi-zahl" id="naviZahl">—</span>
+          <span class="navi-unit">€/h</span>
+          <span class="navi-trend" id="naviTrend"></span>
+        </div>
+        <div class="navi-skala">
+          <div class="navi-skala-bar">
+            <div class="seg r"></div>
+            <div class="seg o"></div>
+            <div class="seg g"></div>
+            <div class="seg d"></div>
+          </div>
+          <div class="navi-skala-marker" id="naviMarker"></div>
+        </div>
+        <div class="navi-stats">
+          <div class="navi-stat">
+            <div class="lbl">Umsatz 12M</div>
+            <div class="val" id="naviUmsatz">—</div>
+          </div>
+          <div class="navi-stat">
+            <div class="lbl">Aufträge</div>
+            <div class="val" id="naviAuftraege">—</div>
+          </div>
+          <div class="navi-stat">
+            <div class="lbl">Letzter Besuch</div>
+            <div class="val" id="naviLast">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="info-grid" id="infoGrid">
+        <div class="info-card" id="cardAdresse" style="display:none;">
+          <div class="info-icon map">📍</div>
+          <div class="info-text">
+            <div class="info-label">Adresse</div>
+            <div class="info-value" id="adresseText">—</div>
+            <div class="info-sub" id="adresseSub" style="display:none;"></div>
+          </div>
+          <div class="info-chevron">›</div>
+        </div>
+
+        <div class="info-card" id="cardKunde" style="display:none;">
+          <div class="info-icon person">🏢</div>
+          <div class="info-text">
+            <div class="info-label">Kunde</div>
+            <div class="info-value" id="kundeName">—</div>
+            <div class="info-sub" id="kundeNr"></div>
+          </div>
+          <div class="info-chevron">›</div>
+        </div>
+
+        <div class="info-card" id="cardBeschreibung" style="display:none;">
+          <div class="info-icon docs">📝</div>
+          <div class="info-text">
+            <div class="info-label">Notizen</div>
+            <div class="info-value" id="beschreibungText" style="white-space:pre-wrap;">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teilnehmer -->
+      <div class="participants" id="teilnehmerBox" style="display:none;">
+        <span class="part-label">Teilnehmer</span>
+        <div class="avs" id="teilnehmerAvs"></div>
+      </div>
+
+      <div class="bottom-spacer"></div>
+
+    </div>
+
+    <!-- DAUMENZONE — Fixed Bottom -->
+    <div class="action-bar">
+
+      <div class="quick-actions">
+        <button class="quick-btn" id="btnCall" title="Anrufen" onclick="imsCall();" disabled>
+          <span class="quick-icon">📞</span>
+          <span class="quick-label">Anrufen</span>
+        </button>
+        <button class="quick-btn" id="btnSms" title="SMS" onclick="imsSms();" disabled>
+          <span class="quick-icon">💬</span>
+          <span class="quick-label">SMS</span>
+        </button>
+        <button class="quick-btn" title="Notiz" onclick="alert('Notiz-Modal kommt in Phase 2');">
+          <span class="quick-icon">📝</span>
+          <span class="quick-label">Notiz</span>
+        </button>
+        <button class="quick-btn" title="Foto" onclick="alert('Foto-Upload kommt in Phase 2');">
+          <span class="quick-icon">📸</span>
+          <span class="quick-label">Foto</span>
+        </button>
+      </div>
+
+      <button class="primary-action" id="btnRoute" onclick="imsRoute();" disabled>
+        <span class="icon">🧭</span>
+        <span class="label">Route starten</span>
+        <span class="meta" id="btnRouteMeta"></span>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/date-helpers.js"></script>
+<script>
+(function() {
+  var CUR = null;
+
+  var KAT_COLORS = {
+    kunde: '#2563eb', lieferant: '#7c3aed', intern: '#00906a',
+    reise: '#ea580c', deadline: '#dc2626', geburtstag: '#db2777', privat: '#8a8478'
+  };
+  var KAT_LABEL = {
+    kunde: 'Kundentermin', lieferant: 'Lieferant', intern: 'Intern',
+    reise: 'Reise', deadline: 'Deadline', geburtstag: 'Geburtstag', privat: 'Privat'
+  };
+  var WOCHENTAGE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  function fmtZeit(t) {
+    var s = new Date(t.start_zeit);
+    var e = new Date(t.end_zeit);
+    if (t.ganztaegig) return 'ganztägig';
+    return hhmm(s) + ' – ' + hhmm(e);
+  }
+  function fmtDauer(t) {
+    var s = new Date(t.start_zeit);
+    var e = new Date(t.end_zeit);
+    var min = Math.round((e - s) / 60000);
+    if (min < 60) return min + ' min';
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    return h + 'h' + (m ? ' ' + m + 'min' : '');
+  }
+  function fmtWDate(t) {
+    var s = new Date(t.start_zeit);
+    var monate = window.imsDate ? window.imsDate.MONATE_KURZ : ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    var kw = window.imsDate ? window.imsDate.kwIso(s) : '?';
+    return WOCHENTAGE[s.getDay()] + ', ' + s.getDate() + '. ' + monate[s.getMonth()] + ' · KW ' + kw;
+  }
+
+  function startCountdown(t) {
+    if (t.ganztaegig) return;
+    var banner = document.getElementById('countdownBanner');
+    var label = document.getElementById('countdownTime');
+    function tick() {
+      var now = new Date();
+      var s = new Date(t.start_zeit);
+      var diff = Math.floor((s - now) / 1000);
+      if (diff <= 0 || diff > 2*3600) {
+        banner.style.display = 'none';
+        return;
+      }
+      banner.style.display = 'flex';
+      var m = Math.floor(diff / 60);
+      var sek = diff % 60;
+      label.innerHTML = pad(m) + ':' + pad(sek) + '<span class="mins">min</span>';
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  function renderNavi(t) {
+    // Platzhalter-Logik: Live-Daten kommen in Phase 2 aus Qlik/Supabase-Cache.
+    // Für Demo-Termine mit bekannten Kunden-Nummern: hardcoded (siehe Handover).
+    var demoMap = {
+      100423: { reh: 142, navi: 'gruen',  umsatz12m: 184300, auftraege12m: 28, status: 'Gesund · Hinfahren lohnt' },
+      100612: { reh:  58, navi: 'rot',    umsatz12m:   6200, auftraege12m:  4, status: 'Verlust · Vorsicht' },
+      100892: { reh:  98, navi: 'orange', umsatz12m:  42300, auftraege12m: 12, status: 'Überleben · Beobachten' }
+    };
+    if (t.kategorie !== 'kunde' || !t.kunde_id || !demoMap[t.kunde_id]) return;
+    var k = demoMap[t.kunde_id];
+    document.getElementById('naviCard').style.display = 'block';
+    document.getElementById('naviStatus').textContent = k.status;
+    document.getElementById('naviZahl').textContent = k.reh;
+    document.getElementById('naviUmsatz').textContent = k.umsatz12m.toLocaleString('de-AT') + ' €';
+    document.getElementById('naviAuftraege').textContent = k.auftraege12m;
+    document.getElementById('naviLast').textContent = '—';
+    var pct = Math.min(96, Math.max(3, (k.reh / 210) * 100));
+    document.getElementById('naviMarker').style.left = 'calc(' + pct + '% - 8px)';
+  }
+
+  function renderTeilnehmer(t) {
+    var arr = t.termin_teilnehmer || [];
+    if (!arr.length) return;
+    var box = document.getElementById('teilnehmerBox');
+    var wrap = document.getElementById('teilnehmerAvs');
+    var html = '';
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      var k = (p.person_kuerzel || 'ex').toLowerCase();
+      var initial = k === 'ex' ? '?' : k.charAt(0).toUpperCase();
+      html += '<span class="av ' + k + '" title="' + k + '">' + initial + '</span>';
+    }
+    wrap.innerHTML = html;
+    box.style.display = 'flex';
+  }
+
+  function render(t) {
+    CUR = t;
+    document.title = t.titel + ' · iFlow Kalender';
+
+    // Nav + Datum
+    document.getElementById('navDate').innerHTML = '<strong>' + fmtWDate(t) + '</strong>';
+
+    // Hero
+    var katEl = document.getElementById('heroKat');
+    katEl.innerHTML = '<span class="kd" style="background:' + (KAT_COLORS[t.kategorie] || '#8a8478') + ';"></span> ' + (KAT_LABEL[t.kategorie] || 'Termin');
+    document.getElementById('heroTitel').textContent = t.titel;
+    if (t.beschreibung) {
+      var sub = document.getElementById('heroSub');
+      sub.textContent = t.beschreibung.split('\n')[0];
+      sub.style.display = 'block';
+    }
+    document.getElementById('heroZeit').textContent = fmtZeit(t);
+    document.getElementById('heroDauer').textContent = fmtDauer(t);
+
+    // Adresse
+    if (t.ort) {
+      document.getElementById('cardAdresse').style.display = 'flex';
+      document.getElementById('adresseText').textContent = t.ort;
+    }
+
+    // Kunde
+    if (t.kunde_id) {
+      document.getElementById('cardKunde').style.display = 'flex';
+      document.getElementById('kundeName').textContent = 'Kunde ' + t.kunde_id;
+      document.getElementById('kundeNr').textContent = 'ams.erp-Nr. ' + t.kunde_id;
+    }
+
+    // Beschreibung
+    if (t.beschreibung) {
+      document.getElementById('cardBeschreibung').style.display = 'flex';
+      document.getElementById('beschreibungText').textContent = t.beschreibung;
+    }
+
+    // Teilnehmer
+    renderTeilnehmer(t);
+
+    // Navi
+    renderNavi(t);
+
+    // Countdown
+    startCountdown(t);
+
+    // Buttons aktivieren
+    if (t.ort) {
+      var btnRoute = document.getElementById('btnRoute');
+      btnRoute.disabled = false;
+    }
+  }
+
+  window.imsCall = function() { alert('Anruf-Integration kommt mit dem Telefon-Modul (Phase 2)'); };
+  window.imsSms = function() { alert('SMS-Integration kommt in Phase 2'); };
+  window.imsRoute = function() {
+    if (!CUR || !CUR.ort) return;
+    var url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(CUR.ort);
+    window.location.href = url;
+  };
+
+  function boot() {
+    if (!window.imsSupabase) {
+      alert('Supabase nicht konfiguriert. /js/config.js prüfen.');
+      return;
+    }
+    // Termin-ID aus URL: /mobile/termin/<UUID>
+    var parts = window.location.pathname.split('/').filter(Boolean);
+    var id = parts[parts.length - 1];
+    if (!id || id === 'kalender-mobile.html') {
+      document.getElementById('heroTitel').textContent = 'Kein Termin angegeben';
+      return;
+    }
+
+    window.imsSupabase.auth.getSession().then(function(r) {
+      if (!r.data || !r.data.session) {
+        window.location.href = '/index.html?reason=unauthorized&next=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      window.imsAPI.termine.get(id).then(function(result) {
+        if (!result.success) {
+          document.getElementById('heroTitel').textContent = 'Termin nicht gefunden';
+          document.getElementById('heroZeit').textContent = (result.error && result.error.message) || 'Fehler';
+          return;
+        }
+        render(result.data);
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+
+</body>
+</html>

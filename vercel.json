@@ -1,0 +1,27 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "public": false,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api", "destination": "/api/index" },
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/mobile/termin/(.*)", "destination": "/kalender-mobile.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "crons": [
+    { "path": "/api/cron/ams-sync",         "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/briefing-morning", "schedule": "0 5 * * 1-5" },
+    { "path": "/api/cron/briefing-followup","schedule": "0 16 * * 1-5" }
+  ]
+}
