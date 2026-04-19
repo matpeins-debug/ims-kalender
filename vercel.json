@@ -18,10 +18,5 @@
         { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
     }
-  ],
-  "crons": [
-    { "path": "/api/cron/ams-sync",         "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/briefing-morning", "schedule": "0 5 * * 1-5" },
-    { "path": "/api/cron/briefing-followup","schedule": "0 16 * * 1-5" }
   ]
 }
