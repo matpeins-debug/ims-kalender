@@ -103,13 +103,21 @@ input[type=email]:focus{
   </div>
 
   <h1>Anmelden</h1>
-  <p class="lead">E-Mail eingeben, Magic-Link kommt per Mail. Ein Klick — drin.</p>
+  <p class="lead">Mit Passwort anmelden oder Magic-Link per Mail anfordern.</p>
 
-  <form id="loginForm" onsubmit="return sendLink(event);">
+  <form id="loginForm" onsubmit="return signInPw(event);">
     <label for="email">E-Mail</label>
     <input id="email" type="email" required autocomplete="email" placeholder="vorname.nachname@ims-box.at">
-    <button id="submitBtn" class="btn" type="submit">Magic-Link senden</button>
+    <label for="password" style="margin-top:14px;">Passwort</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Passwort eingeben">
+    <button id="submitBtn" class="btn" type="submit">Anmelden</button>
   </form>
+
+  <div style="text-align:center;margin-top:18px;">
+    <a href="#" onclick="return sendLink(event);" style="color:#52493e;font-size:13px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px;">
+      oder Magic-Link per Mail senden
+    </a>
+  </div>
 
   <div id="msg"></div>
 
@@ -139,31 +147,48 @@ input[type=email]:focus{
   }
 })();
 
-function sendLink(ev) {
+function signInPw(ev) {
   ev.preventDefault();
   var email = document.getElementById('email').value.trim();
+  var password = document.getElementById('password').value;
   var btn = document.getElementById('submitBtn');
-  if (!email) return false;
-
+  if (!email || !password) {
+    showMsg('err', 'E-Mail und Passwort bitte ausfüllen.');
+    return false;
+  }
   btn.disabled = true;
-  btn.textContent = 'Wird gesendet...';
+  btn.textContent = 'Anmelden...';
 
-  window.imsSupabase.auth.signInWithOtp({
+  window.imsSupabase.auth.signInWithPassword({
     email: email,
-    options: {
-      emailRedirectTo: window.location.origin + '/kalender.html'
-    }
+    password: password
   }).then(function(r) {
     btn.disabled = false;
-    btn.textContent = 'Magic-Link senden';
+    btn.textContent = 'Anmelden';
     if (r.error) {
-      showMsg('err', 'Fehler: ' + r.error.message);
-    } else {
-      showMsg('ok', 'Link geschickt an ' + email + '. Mailbox checken.');
-      document.getElementById('email').value = '';
+      showMsg('err', 'Login fehlgeschlagen: ' + r.error.message);
+      return;
     }
+    showMsg('ok', 'Willkommen! Leite weiter...');
+    setTimeout(function() { window.location.href = '/kalender.html'; }, 400);
   });
+  return false;
+}
 
+function sendLink(ev) {
+  if (ev && ev.preventDefault) ev.preventDefault();
+  var email = document.getElementById('email').value.trim();
+  if (!email) {
+    showMsg('err', 'E-Mail-Feld ausfüllen, dann Magic-Link klicken.');
+    return false;
+  }
+  window.imsSupabase.auth.signInWithOtp({
+    email: email,
+    options: { emailRedirectTo: window.location.origin + '/kalender.html' }
+  }).then(function(r) {
+    if (r.error) showMsg('err', 'Fehler: ' + r.error.message);
+    else showMsg('ok', 'Link geschickt an ' + email + '. Mailbox checken (auch Spam!).');
+  });
   return false;
 }
 
