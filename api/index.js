@@ -31,9 +31,8 @@ app.get('/api/health', (req, res) => {
   ok(res, { status: 'ok', ts: new Date().toISOString() });
 });
 
-// ── Auth-geschützt: Kalender-Routes ─────────────────────────────
-// /:id/teilnehmer wird intern vom termine-Router gemounted
-app.use('/api/kalender/termine', requireAuth, termineRoutes);
+// ── DEBUG: requireAuth temporaer raus um Crash zu isolieren ─────
+app.use('/api/kalender/termine', termineRoutes);
 app.use('/api/kalender',         requireAuth, queriesRoutes);
 
 // ── Cron (eigene Auth) ──────────────────────────────────────────
