@@ -10,7 +10,6 @@ const fs = require('fs');
 
 const { requireAuth, requireCronAuth } = require('./kalender/auth');
 const termineRoutes    = require('./kalender/termine');
-const teilnehmerRoutes = require('./kalender/teilnehmer');
 const queriesRoutes    = require('./kalender/queries');
 const cronRoutes       = require('./kalender/cron');
 const { ok } = require('./kalender/utils');
@@ -33,11 +32,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Auth-geschützt: Kalender-Routes ─────────────────────────────
-app.use('/api/kalender/termine/:id/teilnehmer', requireAuth, (req, res, next) => {
-  // teilnehmer-router nutzt mergeParams:true → :id kommt mit
-  next();
-}, teilnehmerRoutes);
-
+// /:id/teilnehmer wird intern vom termine-Router gemounted
 app.use('/api/kalender/termine', requireAuth, termineRoutes);
 app.use('/api/kalender',         requireAuth, queriesRoutes);
 

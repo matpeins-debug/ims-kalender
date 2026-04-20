@@ -2,8 +2,12 @@
 
 const express = require('express');
 const { ok, fail, parseDateQuery, validateTermin } = require('./utils');
+const teilnehmerRoutes = require('./teilnehmer');
 
 const router = express.Router();
+
+// Teilnehmer-Subrouter unter /:id/teilnehmer mounten (mergeParams:true uebernimmt :id)
+router.use('/:id/teilnehmer', teilnehmerRoutes);
 
 // ── GET /api/kalender/termine?von=&bis=&person=&kategorie= ──────────
 router.get('/', async (req, res) => {
