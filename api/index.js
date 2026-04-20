@@ -9,8 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { requireAuth, requireCronAuth } = require('./kalender/auth');
-const termineRoutes    = require('./kalender/termine');
-const queriesRoutes    = require('./kalender/queries');
+const queriesRoutes    = require('./kalender/queries'); // enthaelt termine als sub-router
 const cronRoutes       = require('./kalender/cron');
 const { ok } = require('./kalender/utils');
 
@@ -31,9 +30,8 @@ app.get('/api/health', (req, res) => {
   ok(res, { status: 'ok', ts: new Date().toISOString() });
 });
 
-// ── DEBUG: requireAuth temporaer raus um Crash zu isolieren ─────
-app.use('/api/kalender/termine', termineRoutes);
-app.use('/api/kalender',         requireAuth, queriesRoutes);
+// ── Auth-geschuetzt: alle Kalender-Routes durch queriesRoutes (enthaelt termine) ──
+app.use('/api/kalender', requireAuth, queriesRoutes);
 
 // ── Cron (eigene Auth) ──────────────────────────────────────────
 app.use('/api/cron', requireCronAuth, cronRoutes);

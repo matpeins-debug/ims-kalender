@@ -2,8 +2,12 @@
 
 const express = require('express');
 const { ok, fail, parseDateQuery } = require('./utils');
+const termineRoutes = require('./termine');
 
 const router = express.Router();
+
+// termine-Routes als Sub-Router unter /termine (ohne :param im Mount-Path)
+router.use('/termine', termineRoutes);
 
 // GET /api/kalender/person/:kuerzel?von=&bis=
 router.get('/person/:kuerzel', async (req, res) => {
