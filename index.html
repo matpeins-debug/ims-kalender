@@ -127,8 +127,8 @@ input[type=email]:focus{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/config.js"></script>
-<script src="/js/supabase-client.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
 <script>
 // Safari-safe: nur var / function
 (function() {
@@ -184,7 +184,7 @@ function sendLink(ev) {
   }
   window.imsSupabase.auth.signInWithOtp({
     email: email,
-    options: { emailRedirectTo: window.location.origin + '/kalender.html' }
+    options: { emailRedirectTo: window.location.href.replace(/index\.html.*$|\?.*$/, '') + 'kalender.html' }
   }).then(function(r) {
     if (r.error) showMsg('err', 'Fehler: ' + r.error.message);
     else showMsg('ok', 'Link geschickt an ' + email + '. Mailbox checken (auch Spam!).');
