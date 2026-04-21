@@ -265,6 +265,22 @@ body {
 .widget-footer{margin-top:10px;padding-top:10px;border-top:1px solid rgba(26,25,21,0.06);font-size:11px;color:#7a7266;}
 .widget-footer a{color:#00906a;text-decoration:none;font-weight:600;}
 
+/* ───── Offene-Angebote-Block im Termin-Popup ───── */
+.popup-angebote{margin:14px 18px 0;padding:12px 14px;background:rgba(0,144,106,0.04);border-radius:12px;border:1px solid rgba(0,144,106,0.12);}
+.popup-angebote-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.popup-angebote-title{font-size:10px;font-weight:800;color:#00906a;text-transform:uppercase;letter-spacing:1px;}
+.popup-angebote-count{font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:700;color:#006548;background:rgba(0,144,106,0.12);padding:2px 8px;border-radius:100px;}
+.popup-ang-row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,144,106,0.1);}
+.popup-ang-row:last-child{border-bottom:none;}
+.popup-ang-info{flex:1;min-width:0;}
+.popup-ang-nr{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;color:#1a1915;}
+.popup-ang-meta{font-size:10px;color:#52493e;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.popup-ang-summe{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:800;color:#1a1915;white-space:nowrap;}
+.popup-ang-tage{font-family:"JetBrains Mono",monospace;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;white-space:nowrap;margin-top:1px;display:inline-block;}
+.popup-ang-tage.ok{background:#d9f4e6;color:#006548;}
+.popup-ang-tage.warn{background:#fef3c7;color:#92400e;}
+.popup-ang-tage.alarm{background:#fee2e2;color:#991b1b;}
+
 /* =====================================================
    COMMAND PALETTE — prominent, wie Linear/Raycast
    ===================================================== */
@@ -2820,6 +2836,17 @@ function openPopup(event, id) {
     html += '</div>';
   }
 
+  // Offene Angebote dieses Kunden (wird async befuellt)
+  if (termin.kat === 'kunde' && termin.kunde_id) {
+    html += '<div class="popup-angebote" id="popupAngeboteBlock">'
+         + '  <div class="popup-angebote-head">'
+         + '    <span class="popup-angebote-title">Offene Angebote</span>'
+         + '    <span class="popup-angebote-count" id="popupAngeboteCount">…</span>'
+         + '  </div>'
+         + '  <div id="popupAngeboteList" style="font-size:11px;color:#7a7266;text-align:center;padding:10px 0;">Lade…</div>'
+         + '</div>';
+  }
+
   html += '<div class="popup-actions">';
   if (termin.kat === 'kunde') {
     html += '<button class="pa-btn"><span class="ic">☎</span>Kontakt</button>';
@@ -2838,6 +2865,11 @@ function openPopup(event, id) {
 
   document.getElementById('popupContainer').innerHTML = html;
   positionPopup(terminEl);
+
+  // Offene Angebote dieses Kunden asynchron laden
+  if (termin.kat === 'kunde' && termin.kunde_id && window.ladeKundenAngebote) {
+    window.ladeKundenAngebote(termin.kunde_id);
+  }
 
   setTimeout(function() {
     document.addEventListener('click', outsideClick);
@@ -3189,6 +3221,80 @@ document.addEventListener('click', function(ev) {
            +   '</div>'
            + '</div>';
     });
+    listEl.innerHTML = html;
+  }
+
+  // ── KUNDEN-ANGEBOTE fuers Termin-Popup ──
+  window.ladeKundenAngebote = function(kundenNr) {
+    var url = SB_URL + '/rest/v1/angebote?select=angebot_id,version,status,kunde_name,kunde_num,datum,data&kunde_num=eq.' + encodeURIComponent(kundenNr) + '&order=datum.desc';
+    fetch(url, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    }).then(function(r){
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(rows){
+      renderKundenAngebote(rows || []);
+    }).catch(function(err){
+      var el = document.getElementById('popupAngeboteList');
+      if (el) el.innerHTML = '<div style="color:#dc2626;font-size:11px;">Fehler: '+err.message+'</div>';
+    });
+  };
+
+  function renderKundenAngebote(rows){
+    // Dedup: neueste Version pro angebot_id
+    var byId = {};
+    rows.forEach(function(r){
+      var key = r.angebot_id;
+      if (!byId[key] || Number(r.version) > Number(byId[key].version)) byId[key] = r;
+    });
+    var unique = Object.values(byId);
+
+    // Nur offene
+    var offen = unique.filter(function(a){
+      var s = (a.status || '').toLowerCase();
+      return s !== 'angenommen' && s !== 'abgelehnt' && s !== 'storno';
+    });
+
+    offen.sort(function(a,b){
+      var ta = a.datum ? new Date(a.datum).getTime() : 0;
+      var tb = b.datum ? new Date(b.datum).getTime() : 0;
+      return tb - ta;
+    });
+
+    var gesamt = 0;
+    offen.forEach(function(a){ gesamt += summeAusData(a.data); });
+
+    var countEl = document.getElementById('popupAngeboteCount');
+    if (countEl) countEl.textContent = offen.length + ' · ' + fmtEurShort(gesamt);
+
+    var listEl = document.getElementById('popupAngeboteList');
+    if (!listEl) return;
+
+    if (offen.length === 0) {
+      listEl.innerHTML = '<div style="color:#7a7266;font-size:11px;text-align:center;padding:6px 0;">Keine offenen Angebote</div>';
+      return;
+    }
+
+    var html = '';
+    offen.slice(0, 5).forEach(function(a){
+      var summe = summeAusData(a.data);
+      var tage = tageSeit(a.datum);
+      var cls = tage === null ? '' : (tage > 20 ? 'alarm' : tage > 10 ? 'warn' : 'ok');
+      var nr = 'AG-' + a.angebot_id + (a.version && a.version !== '1' ? ' v' + a.version : '');
+      html += '<div class="popup-ang-row">'
+           +   '<div class="popup-ang-info">'
+           +     '<div class="popup-ang-nr">'+nr+'</div>'
+           +     '<div class="popup-ang-meta">'+(a.status || '—')+'</div>'
+           +   '</div>'
+           +   '<div style="text-align:right;">'
+           +     '<div class="popup-ang-summe">'+fmtEur(summe)+' €</div>'
+           +     (tage !== null ? '<div class="popup-ang-tage '+cls+'">'+tage+'d</div>' : '')
+           +   '</div>'
+           + '</div>';
+    });
+    if (offen.length > 5) {
+      html += '<div style="text-align:center;font-size:10px;color:#7a7266;padding-top:6px;">+ '+(offen.length-5)+' weitere</div>';
+    }
     listEl.innerHTML = html;
   }
 
