@@ -386,53 +386,16 @@
       </div>
     </div>
 
-    <div class="widget">
+    <div class="widget" id="wgAngebote">
       <div class="widget-head">
         <div class="widget-title">Offene Angebote</div>
-        <div class="widget-count">12 · 84.200 €</div>
+        <div class="widget-count" id="wgAngCount">...</div>
       </div>
-      <div class="angebot-row">
-        <div class="a-info">
-          <div class="a-kunde">Kunde Schadner</div>
-          <div class="a-meta">AG-2026-0147 · 12 Stk · Dusche TB</div>
-        </div>
-        <div>
-          <div class="a-summe">8.420 €</div>
-          <div class="a-tage alarm" style="margin-top:3px;">23 Tage</div>
-        </div>
-      </div>
-      <div class="angebot-row">
-        <div class="a-info">
-          <div class="a-kunde">Kunde Schmid</div>
-          <div class="a-meta">AG-2026-0152 · 8 Stk · WC UP</div>
-        </div>
-        <div>
-          <div class="a-summe">6.180 €</div>
-          <div class="a-tage warn" style="margin-top:3px;">17 Tage</div>
-        </div>
-      </div>
-      <div class="angebot-row">
-        <div class="a-info">
-          <div class="a-kunde">Gcihaustec Wien</div>
-          <div class="a-meta">AG-2026-0158 · 32 Stk · SLIM-Line</div>
-        </div>
-        <div>
-          <div class="a-summe">24.600 €</div>
-          <div class="a-tage ok" style="margin-top:3px;">4 Tage</div>
-        </div>
-      </div>
-      <div class="angebot-row">
-        <div class="a-info">
-          <div class="a-kunde">Traussnigg</div>
-          <div class="a-meta">AG-2026-0161 · 30 Stk · Mix</div>
-        </div>
-        <div>
-          <div class="a-summe">18.900 €</div>
-          <div class="a-tage ok" style="margin-top:3px;">2 Tage</div>
-        </div>
+      <div id="wgAngList">
+        <div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px;">Lade Angebote...</div>
       </div>
       <div class="widget-footer">
-        <a href="#">Alle 12 anzeigen →</a>
+        <a href="#" id="wgAngAll">Alle anzeigen →</a>
       </div>
     </div>
 
@@ -488,6 +451,137 @@
   </aside>
 
 </div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LIVE-DATA: Offene Angebote aus Supabase
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+  var SB_URL = 'https://elwlptapzwwqhjuxnnws.supabase.co';
+  var SB_KEY = 'sb_publishable_MbE6UlJorEnYMe6w77Lixw_ttcF5gBx';
+
+  function fmtEur(n){
+    if (!n || isNaN(n)) return '0 €';
+    return Math.round(n).toLocaleString('de-AT') + ' €';
+  }
+  function tageSeit(iso){
+    if (!iso) return null;
+    return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  }
+  function tageBadge(tage){
+    if (tage === null) return '';
+    var cls = tage > 20 ? 'alarm' : tage > 10 ? 'warn' : 'ok';
+    return '<div class="a-tage ' + cls + '" style="margin-top:3px;">' + tage + ' Tage</div>';
+  }
+  function summeAusData(data){
+    if (!data) return 0;
+    // Verschiedene moegliche Felder je nach Angebot-Struktur
+    if (typeof data.sumTotal === 'number') return data.sumTotal;
+    if (typeof data.total === 'number') return data.total;
+    if (typeof data.gesamt === 'number') return data.gesamt;
+    // Sum from items
+    if (Array.isArray(data.items)) {
+      var s = 0;
+      for (var i=0; i<data.items.length; i++) {
+        var it = data.items[i];
+        var qty = Number(it.qty || it.menge || 1);
+        var price = Number(it.price || it.preis || 0);
+        s += qty * price;
+      }
+      return s;
+    }
+    return 0;
+  }
+  function artikelInfo(data){
+    if (!data) return '';
+    if (Array.isArray(data.items) && data.items.length > 0) {
+      var total = 0, first = '';
+      for (var i=0; i<data.items.length; i++) {
+        total += Number(data.items[i].qty || data.items[i].menge || 1);
+        if (!first) first = (data.items[i].name || data.items[i].bez || '').substring(0,18);
+      }
+      return total + ' Stk · ' + first;
+    }
+    return '';
+  }
+
+  function loadAngebote(){
+    // Alle offenen Angebote (nicht abgelehnt/angenommen), sortiert nach modified desc
+    var url = SB_URL + '/rest/v1/angebote?select=angebot_id,version,status,kunde_name,kunde_num,datum,frist,modified_at,data&order=modified_at.desc';
+    fetch(url, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    }).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(rows){
+      render(rows || []);
+    }).catch(function(err){
+      document.getElementById('wgAngList').innerHTML =
+        '<div style="padding:12px;color:var(--navi-rot);font-size:12px;">Fehler: ' + err.message + '</div>';
+    });
+  }
+
+  function render(rows){
+    // Duplikate durch angebot_id gruppieren (neueste Version)
+    var byId = {};
+    rows.forEach(function(r){
+      var key = r.angebot_id;
+      if (!byId[key] || Number(r.version) > Number(byId[key].version)) byId[key] = r;
+    });
+    var unique = Object.values(byId);
+
+    // Offen = alles ausser "angenommen"/"abgelehnt"/"storno"
+    var offen = unique.filter(function(a){
+      var s = (a.status || '').toLowerCase();
+      return s !== 'angenommen' && s !== 'abgelehnt' && s !== 'storno';
+    });
+
+    // Nach datum absteigend (neueste oben) — alternativ: modified_at
+    offen.sort(function(a,b){
+      var ta = a.datum ? new Date(a.datum).getTime() : 0;
+      var tb = b.datum ? new Date(b.datum).getTime() : 0;
+      return tb - ta;
+    });
+
+    var gesamt = 0;
+    offen.forEach(function(a){ gesamt += summeAusData(a.data); });
+
+    document.getElementById('wgAngCount').textContent =
+      offen.length + ' · ' + fmtEur(gesamt);
+
+    var top = offen.slice(0, 5);
+    if (top.length === 0) {
+      document.getElementById('wgAngList').innerHTML =
+        '<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px;">Keine offenen Angebote</div>';
+      return;
+    }
+
+    var html = '';
+    top.forEach(function(a){
+      var summe = summeAusData(a.data);
+      var info = artikelInfo(a.data);
+      var tage = tageSeit(a.datum);
+      var kunde = a.kunde_name || '(ohne Kunde)';
+      var meta = 'AG-' + a.angebot_id;
+      if (a.version && a.version !== '1') meta += ' v' + a.version;
+      if (info) meta += ' · ' + info;
+      html += '<div class="angebot-row">'
+           +    '<div class="a-info">'
+           +      '<div class="a-kunde">' + kunde + '</div>'
+           +      '<div class="a-meta">' + meta + '</div>'
+           +    '</div>'
+           +    '<div>'
+           +      '<div class="a-summe">' + fmtEur(summe) + '</div>'
+           +      tageBadge(tage)
+           +    '</div>'
+           +  '</div>';
+    });
+    document.getElementById('wgAngList').innerHTML = html;
+  }
+
+  loadAngebote();
+})();
+</script>
 
 </body>
 </html>
