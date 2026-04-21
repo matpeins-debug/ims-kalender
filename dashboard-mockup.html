@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iFlow Kalender · Dashboard-Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f4ee;
+    --surface:#ffffff;
+    --text:#1a1915;
+    --text-2:#52493e;
+    --text-3:#7a7266;
+    --text-4:#a8a094;
+    --line:rgba(26,25,21,0.08);
+    --brand:#00906a;
+    --brand-2:#00a87a;
+    --c-kunde:#2563eb;
+    --c-intern:#00906a;
+    --c-lieferant:#7c3aed;
+    --c-reise:#ea580c;
+    --c-deadline:#dc2626;
+    --navi-gruen:#00906a;
+    --navi-orange:#d97706;
+    --navi-rot:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(0,168,122,0.07), transparent 40%),
+      radial-gradient(circle at 92% 12%, rgba(234,88,12,0.05), transparent 35%),
+      radial-gradient(circle at 50% 100%, rgba(124,58,237,0.04), transparent 50%);
+    color:var(--text);
+    font-feature-settings:"cv11","ss01";
+    letter-spacing:-0.01em;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .tabnum{font-variant-numeric:tabular-nums;}
+
+  /* ───────── TOPBAR ───────── */
+  .topbar{
+    height:60px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(14px) saturate(150%);
+    -webkit-backdrop-filter:blur(14px) saturate(150%);
+    position:sticky;top:0;z-index:10;
+    box-shadow:0 1px 0 var(--line);
+    display:flex;align-items:center;padding:0 24px;gap:24px;
+  }
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#00a87a,#00906a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,144,106,0.25);}
+  .logo-txt{line-height:1.2;}
+  .logo-txt .name{font-size:13px;font-weight:700;}
+  .logo-txt .sub{font-size:10px;color:var(--text-3);font-weight:500;}
+  .nav{display:flex;gap:4px;margin-left:12px;}
+  .nav a{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;transition:all 0.12s;}
+  .nav a:hover{background:rgba(26,25,21,0.05);color:var(--text);}
+  .nav a.active{background:var(--text);color:#fff;}
+
+  /* ───────── KPI-STRIP ───────── */
+  .kpi-strip{
+    display:flex;gap:0;
+    margin-left:auto;
+    background:rgba(255,255,255,0.6);
+    border-radius:12px;
+    padding:6px;
+    box-shadow:inset 0 0 0 1px var(--line);
+  }
+  .kpi{
+    padding:4px 16px;
+    border-right:1px solid var(--line);
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .kpi:last-child{border-right:none;}
+  .kpi-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;}
+  .kpi-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;letter-spacing:-0.5px;}
+  .kpi-val .unit{font-size:10px;color:var(--text-3);margin-left:3px;font-weight:600;}
+  .kpi.warn .kpi-val{color:var(--navi-orange);}
+  .kpi.alarm .kpi-val{color:var(--navi-rot);}
+  .kpi.ok .kpi-val{color:var(--navi-gruen);}
+  .ampel-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:4px;vertical-align:middle;}
+  .ampel-dot.gruen{background:var(--navi-gruen);}
+  .ampel-dot.orange{background:var(--navi-orange);}
+  .ampel-dot.rot{background:var(--navi-rot);}
+
+  .user-chip{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ea580c,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;margin-left:16px;}
+
+  /* ───────── LAYOUT ───────── */
+  .app{
+    display:grid;
+    grid-template-columns:240px 1fr 320px;
+    gap:16px;
+    padding:16px 24px 24px;
+    max-width:1600px;margin:0 auto;
+  }
+
+  /* ───────── LEFT SIDEBAR ───────── */
+  .sidebar{
+    background:linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.25) 100%);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-radius:20px;
+    padding:18px 14px;
+    box-shadow:0 1px 3px rgba(26,25,21,0.04);
+    height:fit-content;
+    position:sticky;top:76px;
+  }
+  .sidebar-section{margin-bottom:22px;}
+  .sidebar-title{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:0 6px;}
+
+  .mini-cal{padding:0 4px;}
+  .mini-month{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:8px;padding:0 4px;}
+  .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:10.5px;font-family:'JetBrains Mono',monospace;}
+  .mini-grid .wd{color:var(--text-4);font-weight:700;text-align:center;padding:4px 0;font-size:9px;}
+  .mini-grid .d{text-align:center;padding:5px 0;border-radius:6px;cursor:pointer;font-weight:500;color:var(--text);}
+  .mini-grid .d:hover{background:rgba(26,25,21,0.05);}
+  .mini-grid .d.other{color:var(--text-4);}
+  .mini-grid .d.today{background:#c5e8d8;color:var(--brand);font-weight:700;}
+  .mini-grid .d.sel{background:var(--brand);color:#fff;font-weight:700;}
+
+  .filter-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.12s;}
+  .filter-item:hover{background:rgba(26,25,21,0.04);}
+  .filter-item.on{background:rgba(0,144,106,0.05);}
+  .cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .filter-label{flex:1;font-weight:500;color:var(--text-2);}
+  .filter-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);font-weight:600;}
+
+  /* ───────── CENTER: KALENDER ───────── */
+  .cal-card{
+    background:rgba(255,255,255,0.6);
+    backdrop-filter:blur(20px) saturate(150%);
+    -webkit-backdrop-filter:blur(20px) saturate(150%);
+    border-radius:24px;
+    padding:20px 24px 24px;
+    box-shadow:0 1px 3px rgba(26,25,21,0.08), 0 6px 16px rgba(26,25,21,0.06);
+  }
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .cal-title{font-size:20px;font-weight:700;letter-spacing:-0.3px;}
+  .cal-title .kw{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text-3);background:rgba(26,25,21,0.05);padding:3px 8px;border-radius:6px;margin-left:6px;letter-spacing:0.5px;}
+  .cal-controls{display:flex;gap:8px;align-items:center;}
+  .view-switch{display:inline-flex;gap:2px;background:rgba(255,255,255,0.75);border-radius:10px;padding:3px;box-shadow:inset 0 0 0 1px var(--line);}
+  .view-switch-btn{padding:5px 11px;border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--text-2);border-radius:7px;cursor:pointer;}
+  .view-switch-btn.active{background:var(--text);color:#fff;box-shadow:0 2px 6px rgba(26,25,21,0.15);}
+  .nav-btn{width:30px;height:30px;border-radius:50%;border:none;background:transparent;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .nav-btn:hover{background:rgba(26,25,21,0.07);color:var(--text);}
+  .today-btn{padding:5px 12px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,0.8);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;}
+
+  .cal-grid{display:grid;grid-template-columns:50px repeat(5,1fr);gap:1px;background:var(--line);border-radius:14px;overflow:hidden;}
+  .cal-grid > *{background:#fff;}
+  .day-head{padding:8px 10px;text-align:center;}
+  .day-head .wd{font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+  .day-head .dt{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;margin-top:2px;}
+  .day-head.today .dt{color:var(--brand);}
+  .corner{background:#fff;}
+  .time-col{padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-4);font-weight:500;}
+  .day-col{padding:4px;min-height:400px;display:flex;flex-direction:column;gap:4px;}
+
+  .termin{
+    border-radius:10px;
+    padding:7px 9px 9px 12px;
+    position:relative;
+    font-size:11px;
+    cursor:pointer;
+    transition:transform 0.12s;
+  }
+  .termin:hover{transform:translateY(-1px);}
+  .termin::before{content:'';position:absolute;left:3px;top:5px;bottom:5px;width:3px;border-radius:100px;background:currentColor;}
+  .termin.kunde{background:rgba(37,99,235,0.14);color:var(--c-kunde);}
+  .termin.intern{background:rgba(0,144,106,0.14);color:var(--c-intern);}
+  .termin.lieferant{background:rgba(124,58,237,0.14);color:var(--c-lieferant);}
+  .termin.reise{background:rgba(234,88,12,0.15);color:var(--c-reise);}
+  .termin.deadline{background:rgba(220,38,38,0.16);color:var(--c-deadline);}
+  .termin .t-time{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;opacity:0.9;}
+  .termin .t-titel{color:var(--text);font-weight:700;font-size:11.5px;margin-top:2px;line-height:1.2;}
+  .termin .t-sub{font-size:10px;color:var(--text-2);margin-top:1px;}
+  .navi-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px 1px 6px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:800;letter-spacing:-0.3px;margin-top:3px;}
+  .navi-chip.gruen{background:linear-gradient(135deg,rgba(0,144,106,0.2),rgba(0,144,106,0.11));color:#006548;box-shadow:inset 0 0 0 1px rgba(0,144,106,0.28);}
+  .navi-chip.orange{background:linear-gradient(135deg,rgba(217,119,6,0.2),rgba(217,119,6,0.11));color:#92400e;box-shadow:inset 0 0 0 1px rgba(217,119,6,0.3);}
+  .navi-chip.rot{background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(220,38,38,0.11));color:#991b1b;box-shadow:inset 0 0 0 1px rgba(220,38,38,0.3);}
+
+  /* ───────── RIGHT SIDEBAR / DASHBOARD ───────── */
+  .dashboard{
+    display:flex;flex-direction:column;gap:14px;
+    height:fit-content;
+  }
+  .widget{
+    background:rgba(255,255,255,0.6);
+    backdrop-filter:blur(20px) saturate(150%);
+    -webkit-backdrop-filter:blur(20px) saturate(150%);
+    border-radius:18px;
+    padding:16px 18px;
+    box-shadow:0 1px 3px rgba(26,25,21,0.04), 0 4px 12px rgba(26,25,21,0.04);
+  }
+  .widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .widget-title{font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;}
+  .widget-count{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text-3);background:rgba(26,25,21,0.05);padding:2px 7px;border-radius:100px;}
+
+  /* Widget: Next Appointment */
+  .next-termin-countdown{
+    background:linear-gradient(135deg,#00a87a,#00906a);
+    color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;
+    box-shadow:0 6px 18px rgba(0,144,106,0.3);
+  }
+  .next-termin-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;opacity:0.9;margin-bottom:4px;}
+  .next-termin-time{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;letter-spacing:-0.8px;line-height:1;}
+  .next-termin-time .min{font-size:12px;opacity:0.85;margin-left:3px;font-weight:600;}
+  .next-termin-title{font-size:13px;font-weight:700;margin-top:8px;}
+  .next-termin-sub{font-size:11px;opacity:0.9;margin-top:2px;}
+
+  /* Widget: Offene Angebote */
+  .angebot-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);}
+  .angebot-row:last-child{border-bottom:none;}
+  .angebot-row:hover{background:rgba(26,25,21,0.02);margin:0 -18px;padding:9px 18px;}
+  .a-info{flex:1;min-width:0;}
+  .a-kunde{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .a-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-3);font-weight:500;margin-top:1px;}
+  .a-summe{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:var(--text);text-align:right;letter-spacing:-0.3px;}
+  .a-tage{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;}
+  .a-tage.warn{background:#fef3c7;color:#92400e;}
+  .a-tage.alarm{background:#fee2e2;color:#991b1b;}
+  .a-tage.ok{background:#d9f4e6;color:#006548;}
+
+  /* Widget: Liefertermine */
+  .ams-row{display:flex;gap:8px;align-items:center;padding:7px 0;font-size:11.5px;border-bottom:1px solid var(--line);}
+  .ams-row:last-child{border-bottom:none;}
+  .ams-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0;}
+  .ams-nr{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text);}
+  .ams-kunde{color:var(--text-2);flex:1;}
+  .ams-zeit{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text-3);font-size:10.5px;}
+
+  .widget-footer{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--text-3);}
+  .widget-footer a{color:var(--brand);text-decoration:none;font-weight:600;}
+
+</style>
+</head>
+<body>
+
+<!-- ───────── TOPBAR ───────── -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">iF</div>
+    <div class="logo-txt">
+      <div class="name">IMS Vertriebs GmbH</div>
+      <div class="sub">iFlow Platform</div>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="#">Dashboard</a>
+    <a href="#" class="active">● Kalender</a>
+    <a href="#">Angebote</a>
+    <a href="#">Aufträge</a>
+    <a href="#">Einstellungen</a>
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi ok">
+      <div class="kpi-label">Umsatz heute</div>
+      <div class="kpi-val tabnum">24.340<span class="unit">€</span></div>
+    </div>
+    <div class="kpi ok">
+      <div class="kpi-label">Rohertrag / h</div>
+      <div class="kpi-val tabnum">142<span class="unit">€/h</span><span class="ampel-dot gruen"></span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Angebote offen</div>
+      <div class="kpi-val tabnum">12<span class="unit">· 84.2k €</span></div>
+    </div>
+    <div class="kpi alarm">
+      <div class="kpi-label">Überfällig</div>
+      <div class="kpi-val tabnum">3<span class="unit">⚠</span></div>
+    </div>
+  </div>
+
+  <div class="user-chip">Ma</div>
+</div>
+
+<!-- ───────── APP-LAYOUT ───────── -->
+<div class="app">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="mini-cal">
+        <div class="mini-month"><span>April 2026</span><span style="color:var(--text-3);">‹ ›</span></div>
+        <div class="mini-grid">
+          <div class="wd">Mo</div><div class="wd">Di</div><div class="wd">Mi</div><div class="wd">Do</div><div class="wd">Fr</div><div class="wd">Sa</div><div class="wd">So</div>
+          <div class="d other">30</div><div class="d other">31</div><div class="d">1</div><div class="d">2</div><div class="d">3</div><div class="d">4</div><div class="d">5</div>
+          <div class="d">6</div><div class="d">7</div><div class="d">8</div><div class="d">9</div><div class="d">10</div><div class="d">11</div><div class="d">12</div>
+          <div class="d">13</div><div class="d">14</div><div class="d">15</div><div class="d">16</div><div class="d">17</div><div class="d">18</div><div class="d">19</div>
+          <div class="d today">20</div><div class="d sel">21</div><div class="d">22</div><div class="d">23</div><div class="d">24</div><div class="d">25</div><div class="d">26</div>
+          <div class="d">27</div><div class="d">28</div><div class="d">29</div><div class="d">30</div><div class="d other">1</div><div class="d other">2</div><div class="d other">3</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Kategorien</div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--c-kunde);"></span><span class="filter-label">Kundentermine</span><span class="filter-count">3</span></div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--c-intern);"></span><span class="filter-label">Intern</span><span class="filter-count">3</span></div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--c-lieferant);"></span><span class="filter-label">Lieferanten</span><span class="filter-count">1</span></div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--c-reise);"></span><span class="filter-label">Reisen</span><span class="filter-count">1</span></div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--c-deadline);"></span><span class="filter-label">Deadlines</span><span class="filter-count">1</span></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Personen</div>
+      <div class="filter-item on"><span class="cat-dot" style="background:var(--text);"></span><span class="filter-label">Alle</span><span class="filter-count">11</span></div>
+      <div class="filter-item"><span class="cat-dot" style="background:#ea580c;"></span><span class="filter-label">Mathias</span><span class="filter-count">7</span></div>
+      <div class="filter-item"><span class="cat-dot" style="background:var(--c-kunde);"></span><span class="filter-label">Michael</span><span class="filter-count">3</span></div>
+      <div class="filter-item"><span class="cat-dot" style="background:#db2777;"></span><span class="filter-label">Elke</span><span class="filter-count">1</span></div>
+    </div>
+  </aside>
+
+  <!-- CENTER: KALENDER -->
+  <main>
+    <div class="cal-card">
+      <div class="cal-head">
+        <div class="cal-title">20. – 24. April<span class="kw">KW 17</span></div>
+        <div class="cal-controls">
+          <div class="view-switch">
+            <button class="view-switch-btn">Monat</button>
+            <button class="view-switch-btn active">Woche</button>
+            <button class="view-switch-btn">Tag</button>
+            <button class="view-switch-btn">Liste</button>
+          </div>
+          <button class="nav-btn">‹</button>
+          <button class="today-btn">Heute</button>
+          <button class="nav-btn">›</button>
+        </div>
+      </div>
+
+      <div class="cal-grid">
+        <div class="corner"></div>
+        <div class="day-head today"><div class="wd">Mo</div><div class="dt tabnum">20</div></div>
+        <div class="day-head"><div class="wd">Di</div><div class="dt tabnum">21</div></div>
+        <div class="day-head"><div class="wd">Mi</div><div class="dt tabnum">22</div></div>
+        <div class="day-head"><div class="wd">Do</div><div class="dt tabnum">23</div></div>
+        <div class="day-head"><div class="wd">Fr</div><div class="dt tabnum">24</div></div>
+
+        <div class="time-col">Termine</div>
+
+        <div class="day-col">
+          <div class="termin intern"><div class="t-time">09:00 – 09:30</div><div class="t-titel">Wochenausblick</div><div class="t-sub">Team-Kickoff</div></div>
+          <div class="termin kunde"><div class="t-time">10:30 – 12:00</div><div class="t-titel">Kunde Schadner</div><div class="t-sub">Aufmaß · Pinkafeld</div><div class="navi-chip gruen">● 124 €/h</div></div>
+          <div class="termin lieferant"><div class="t-time">16:00 – 17:00</div><div class="t-titel">Tisma Jahresgespr.</div></div>
+        </div>
+
+        <div class="day-col">
+          <div class="termin kunde"><div class="t-time">09:00 – 10:30</div><div class="t-titel">Kunde Schmid</div><div class="t-sub">Angebotsklärung · Video</div><div class="navi-chip orange">● 94 €/h</div></div>
+          <div class="termin reise"><div class="t-time">17:00 – 22:00</div><div class="t-titel">LSI Gala</div><div class="t-sub">Palais Coburg</div></div>
+        </div>
+
+        <div class="day-col">
+          <div class="termin intern"><div class="t-time">ganztägig</div><div class="t-titel">🎂 Michael</div></div>
+          <div class="termin reise"><div class="t-time">ganztägig</div><div class="t-titel">Elke Urlaub</div></div>
+        </div>
+
+        <div class="day-col">
+          <div class="termin intern"><div class="t-time">09:00 – 11:00</div><div class="t-titel">Produktion</div><div class="t-sub">Engpass ZB</div></div>
+          <div class="termin kunde"><div class="t-time">14:00 – 15:30</div><div class="t-titel">Kunde Huber</div><div class="t-sub">Anfrage Wohnbau · Video</div><div class="navi-chip rot">● 58 €/h</div></div>
+        </div>
+
+        <div class="day-col">
+          <div class="termin deadline"><div class="t-time">17:00 – 17:30</div><div class="t-titel">Deadline Ortner</div><div class="t-sub">Angebot abgeben</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR: DASHBOARD -->
+  <aside class="dashboard">
+
+    <div class="widget">
+      <div class="widget-head">
+        <div class="widget-title">Nächster Termin</div>
+      </div>
+      <div class="next-termin-countdown">
+        <div class="next-termin-label">Startet in</div>
+        <div class="next-termin-time">1:23<span class="min">h</span></div>
+        <div class="next-termin-title">Kunde Schadner</div>
+        <div class="next-termin-sub">10:30 · Pinkafeld · 38 km</div>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head">
+        <div class="widget-title">Offene Angebote</div>
+        <div class="widget-count">12 · 84.200 €</div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Kunde Schadner</div>
+          <div class="a-meta">AG-2026-0147 · 12 Stk · Dusche TB</div>
+        </div>
+        <div>
+          <div class="a-summe">8.420 €</div>
+          <div class="a-tage alarm" style="margin-top:3px;">23 Tage</div>
+        </div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Kunde Schmid</div>
+          <div class="a-meta">AG-2026-0152 · 8 Stk · WC UP</div>
+        </div>
+        <div>
+          <div class="a-summe">6.180 €</div>
+          <div class="a-tage warn" style="margin-top:3px;">17 Tage</div>
+        </div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Gcihaustec Wien</div>
+          <div class="a-meta">AG-2026-0158 · 32 Stk · SLIM-Line</div>
+        </div>
+        <div>
+          <div class="a-summe">24.600 €</div>
+          <div class="a-tage ok" style="margin-top:3px;">4 Tage</div>
+        </div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Traussnigg</div>
+          <div class="a-meta">AG-2026-0161 · 30 Stk · Mix</div>
+        </div>
+        <div>
+          <div class="a-summe">18.900 €</div>
+          <div class="a-tage ok" style="margin-top:3px;">2 Tage</div>
+        </div>
+      </div>
+      <div class="widget-footer">
+        <a href="#">Alle 12 anzeigen →</a>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head">
+        <div class="widget-title">Liefertermine heute</div>
+        <div class="widget-count">2</div>
+      </div>
+      <div class="ams-row">
+        <div class="ams-dot"></div>
+        <div class="ams-nr">AU 712</div>
+        <div class="ams-kunde">Forstenlechner</div>
+        <div class="ams-zeit">14:00</div>
+      </div>
+      <div class="ams-row">
+        <div class="ams-dot"></div>
+        <div class="ams-nr">AU 722</div>
+        <div class="ams-kunde">Schwartz DE</div>
+        <div class="ams-zeit">16:30</div>
+      </div>
+      <div class="widget-footer">
+        <a href="#">ams.erp öffnen →</a>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head">
+        <div class="widget-title">Top-Kunden KW 17</div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Gcihaustec Wien</div>
+          <div class="a-meta">3 Angebote · 1 Auftrag</div>
+        </div>
+        <div class="a-summe">32.800 €</div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Traussnigg</div>
+          <div class="a-meta">2 Angebote · 2 Aufträge</div>
+        </div>
+        <div class="a-summe">27.400 €</div>
+      </div>
+      <div class="angebot-row">
+        <div class="a-info">
+          <div class="a-kunde">Schadner</div>
+          <div class="a-meta">1 Angebot · offen</div>
+        </div>
+        <div class="a-summe">8.420 €</div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+</body>
+</html>
