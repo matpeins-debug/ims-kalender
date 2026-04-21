@@ -2963,7 +2963,13 @@ function imsUpdateTitle() {
   // TAGE für renderCalendar bereitstellen (mit formatiertem dt)
   TAGE = [];
   for (var i = 0; i < wt.length; i++) {
-    TAGE.push({ wd: wt[i].wd, dt: (wt[i].dt < 10 ? '0' : '') + wt[i].dt, today: wt[i].today });
+    TAGE.push({
+      wd: wt[i].wd,
+      dt: (wt[i].dt < 10 ? '0' : '') + wt[i].dt,
+      today: wt[i].today,
+      datum: wt[i].datum,
+      ymd: wt[i].ymd
+    });
   }
 }
 
@@ -3089,12 +3095,11 @@ document.addEventListener('click', function(ev) {
   }
 
   document.getElementById('calGrid').addEventListener('click', function(ev){
-    console.log('[QC] click on calGrid', ev.target.className);
     // nicht beim Click auf einen Termin ausloesen
-    if (istAufTermin(ev.target)) { console.log('[QC] abort: auf termin'); return; }
+    if (istAufTermin(ev.target)) return;
 
     var dayCol = ev.target.closest('.day-col');
-    if (!dayCol) { console.log('[QC] abort: keine day-col'); return; }
+    if (!dayCol) return;
 
     // Index der Day-Col (0-4 fuer Mo-Fr)
     var cols = document.querySelectorAll('#calGrid .day-col');
@@ -3102,14 +3107,13 @@ document.addEventListener('click', function(ev) {
     for (var i = 0; i < cols.length; i++) {
       if (cols[i] === dayCol) { tagIdx = i; break; }
     }
-    if (tagIdx < 0 || tagIdx >= 5) { console.log('[QC] abort: tagIdx=', tagIdx); return; }
+    if (tagIdx < 0 || tagIdx >= 5) return;
 
     // TAGE[tagIdx] hat .datum (Date) + .ymd
-    if (!window.TAGE || !window.TAGE[tagIdx]) { console.log('[QC] abort: TAGE leer', window.TAGE); return; }
+    if (!window.TAGE || !window.TAGE[tagIdx]) return;
     var tag = window.TAGE[tagIdx];
-    console.log('[QC] tag', tag);
     var datum = tag.datum || (tag.ymd ? new Date(tag.ymd) : null);
-    if (!datum) { console.log('[QC] abort: kein datum'); return; }
+    if (!datum) return;
 
     // Y-Position im Grid -> Uhrzeit
     var rect = dayCol.getBoundingClientRect();
