@@ -1064,6 +1064,34 @@ body {
   position: relative;
   min-height: 832px;
   padding-top: 8px;
+  cursor: copy;
+}
+
+/* Quick-Create Hover-Ghost: schwebender 30-Min-Block folgt der Maus */
+.qc-ghost {
+  position: absolute;
+  left: 4px; right: 4px;
+  height: 32px;                    /* 30 Min bei SLOT_H=64 */
+  background: rgba(0,144,106,0.12);
+  border: 1px dashed rgba(0,144,106,0.55);
+  border-radius: 8px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #006548;
+  letter-spacing: -0.3px;
+  z-index: 3;
+  transition: opacity 0.1s;
+}
+.qc-ghost::before {
+  content: "+";
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .day-col.today {
@@ -3093,6 +3121,49 @@ document.addEventListener('click', function(ev) {
     if (!target.closest) return false;
     return target.closest('.termin') || target.closest('.termin-allday') || target.closest('.popup');
   }
+
+  // Y-Position im Dayslot -> auf 15-Min-Raster gerundete Stunde
+  function relYtoHour(relY) {
+    var h = START_HOUR + (relY - TOP_OFFSET) / SLOT_H;
+    return Math.round(h * 4) / 4;
+  }
+  function hourToStr(h) {
+    var hh = Math.floor(h);
+    var mm = Math.round((h - hh) * 60);
+    return pad(hh) + ':' + pad(mm);
+  }
+
+  // ── HOVER-GHOST: zeigt 30-Min-Block + Uhrzeit an Maus-Position ──
+  var ghostEl = null;
+  function showGhost(dayCol, relY) {
+    var hourFloat = relYtoHour(relY);
+    if (hourFloat < START_HOUR || hourFloat > 22) { hideGhost(); return; }
+    var topPx = TOP_OFFSET + (hourFloat - START_HOUR) * SLOT_H;
+    if (!ghostEl) {
+      ghostEl = document.createElement('div');
+      ghostEl.className = 'qc-ghost';
+      ghostEl.innerHTML = '<span class="qc-time">00:00 – 00:30</span>';
+    }
+    if (ghostEl.parentNode !== dayCol) {
+      if (ghostEl.parentNode) ghostEl.parentNode.removeChild(ghostEl);
+      dayCol.appendChild(ghostEl);
+    }
+    ghostEl.style.top = topPx + 'px';
+    var endFloat = hourFloat + 0.5;
+    ghostEl.querySelector('.qc-time').textContent = hourToStr(hourFloat) + ' – ' + hourToStr(endFloat);
+  }
+  function hideGhost() {
+    if (ghostEl && ghostEl.parentNode) ghostEl.parentNode.removeChild(ghostEl);
+  }
+
+  document.getElementById('calGrid').addEventListener('mousemove', function(ev){
+    if (istAufTermin(ev.target)) { hideGhost(); return; }
+    var dayCol = ev.target.closest('.day-col');
+    if (!dayCol) { hideGhost(); return; }
+    var rect = dayCol.getBoundingClientRect();
+    showGhost(dayCol, ev.clientY - rect.top);
+  });
+  document.getElementById('calGrid').addEventListener('mouseleave', hideGhost);
 
   document.getElementById('calGrid').addEventListener('click', function(ev){
     // nicht beim Click auf einen Termin ausloesen
