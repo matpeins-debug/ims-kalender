@@ -3071,6 +3071,77 @@ document.addEventListener('click', function(ev) {
   var id = offen.getAttribute('data-id');
   if (id) imsBearbeiten(id);
 });
+
+/* ═════════════════════════════════════════════════════════════════
+   QUICK-CREATE: Click auf leeren Kalender-Slot → Neuer Termin
+   ═════════════════════════════════════════════════════════════════ */
+(function() {
+  var SLOT_H = 64;     // Hoehe 1 Stunde in px (muss mit renderCalendar matchen)
+  var TOP_OFFSET = 8;  // Offset oben
+  var START_HOUR = 6;  // Kalender startet um 06:00
+  var DEFAULT_DAUER_MIN = 30;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function istAufTermin(target) {
+    if (!target.closest) return false;
+    return target.closest('.termin') || target.closest('.termin-allday') || target.closest('.popup');
+  }
+
+  document.getElementById('calGrid').addEventListener('click', function(ev){
+    // nicht beim Click auf einen Termin ausloesen
+    if (istAufTermin(ev.target)) return;
+
+    var dayCol = ev.target.closest('.day-col');
+    if (!dayCol) return;
+
+    // Index der Day-Col (0-4 fuer Mo-Fr)
+    var cols = document.querySelectorAll('#calGrid .day-col');
+    var tagIdx = -1;
+    for (var i = 0; i < cols.length; i++) {
+      if (cols[i] === dayCol) { tagIdx = i; break; }
+    }
+    if (tagIdx < 0 || tagIdx >= 5) return;
+
+    // TAGE[tagIdx] hat .datum (Date) + .ymd
+    if (!window.TAGE || !window.TAGE[tagIdx]) return;
+    var tag = window.TAGE[tagIdx];
+    var datum = tag.datum || (tag.ymd ? new Date(tag.ymd) : null);
+    if (!datum) return;
+
+    // Y-Position im Grid -> Uhrzeit
+    var rect = dayCol.getBoundingClientRect();
+    var relY = ev.clientY - rect.top;
+    var hours = START_HOUR + (relY - TOP_OFFSET) / SLOT_H;
+    if (hours < 0 || hours > 23.5) return;
+
+    // Auf 15-Min-Raster runden
+    var total15 = Math.round(hours * 4) / 4;
+    var startH = Math.floor(total15);
+    var startM = Math.round((total15 - startH) * 60);
+
+    // Dauer +30 Min
+    var endTotalMin = startH * 60 + startM + DEFAULT_DAUER_MIN;
+    var endH = Math.floor(endTotalMin / 60);
+    var endM = endTotalMin % 60;
+
+    // Lokale ISO-Strings bauen (wird vom Modal's isoToLocalInput gelesen)
+    var y = datum.getFullYear();
+    var m = datum.getMonth() + 1;
+    var d = datum.getDate();
+    var dateStr = y + '-' + pad(m) + '-' + pad(d);
+    var startIso = dateStr + 'T' + pad(startH) + ':' + pad(startM) + ':00';
+    var endIso   = dateStr + 'T' + pad(endH)   + ':' + pad(endM)   + ':00';
+
+    // Modal oeffnen mit vorbefuellten Feldern
+    if (window.imsModal && window.imsModal.open) {
+      window.imsModal.open(
+        { start_zeit: startIso, end_zeit: endIso, kategorie: 'kunde' },
+        { onSave: function(){ if (typeof imsLadeTermine === 'function') imsLadeTermine(); } }
+      );
+    }
+  });
+})();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
