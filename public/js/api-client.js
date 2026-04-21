@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   IMS Kalender · Supabase-Direct-Client (ohne API-Layer)
+   IMS Kalender · Supabase-Direct-Client (ohne API-Layer) · v2
    Rest-Interface kompatibel zur frueheren Fetch-Version.
    Safari-safe: var / function / String-Concat, keine Arrows.
    ═══════════════════════════════════════════════════════════════ */
