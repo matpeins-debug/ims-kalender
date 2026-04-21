@@ -1062,7 +1062,7 @@ body {
    ===================================================== */
 .day-col {
   position: relative;
-  min-height: 832px;
+  min-height: 1040px;            /* 16h * 64 + 16 */
   padding-top: 8px;
   cursor: copy;
 }
@@ -1122,7 +1122,7 @@ body {
 .termin {
   position: absolute;
   left: 4px; right: 4px;
-  padding: 9px 11px 14px 14px;
+  padding: 7px 11px 10px 14px;
   border-radius: 10px;
   cursor: pointer;
   overflow: hidden;
@@ -1131,7 +1131,8 @@ body {
   border: none;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
+  min-height: 44px;              /* 30-Min-Termine: sauber lesbar statt verkrueppelt */
   /* TIEFE — Termine schweben sichtbar */
   box-shadow:
     0 1px 3px rgba(26,25,21,0.08),
@@ -1139,6 +1140,12 @@ body {
     inset 0 0.5px 0 rgba(255,255,255,0.6);
   animation: terminPop 0.4s var(--ease) backwards;
 }
+/* Kompakt-Modus bei kurzen Terminen: Titel bleibt Hauptinfo, Rest schrumpft */
+.termin.compact { padding: 5px 10px; }
+.termin.compact .titel { font-size: 12px; line-height: 1.15; }
+.termin.compact .meta  { font-size: 10px; margin-top: 0; }
+.termin.compact .sub   { display: none; }
+.termin.compact .navi-chip { margin-top: 2px; transform: scale(0.9); transform-origin: left center; }
 
 .termin::before {
   content: '';
@@ -2350,17 +2357,25 @@ window.IMS_CONFIG = {
     document.head.appendChild(s);
   }
 
-  function isoToLocalInput(iso) {
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function isoToDate(iso) {
     if (!iso) return '';
     var d = new Date(iso);
-    var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
-    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
-         + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
   }
-
-  function localInputToIso(s) {
-    if (!s) return null;
-    var d = new Date(s);
+  function isoToTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    var mm = Math.round(d.getMinutes() / 15) * 15;
+    var hh = d.getHours();
+    if (mm === 60) { mm = 0; hh++; }
+    return pad2(hh) + ':' + pad2(mm);
+  }
+  function dateTimeToIso(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return null;
+    var d = new Date(dateStr + 'T' + timeStr + ':00');
+    if (isNaN(d.getTime())) return null;
     return d.toISOString();
   }
 
@@ -2390,14 +2405,18 @@ window.IMS_CONFIG = {
       + '      <label>Titel *</label>'
       + '      <input id="imsTitel" type="text" value="' + escapeAttr(t.titel || '') + '" placeholder="z.B. Kunde Schadner">'
       + '    </div>'
+      + '    <div class="ims-form-row">'
+      + '      <label>Datum *</label>'
+      + '      <input id="imsDate" type="date" value="' + isoToDate(t.start_zeit) + '" oninput="imsModal.syncDate()">'
+      + '    </div>'
       + '    <div class="ims-form-grid">'
       + '      <div class="ims-form-row">'
       + '        <label>Start *</label>'
-      + '        <input id="imsStart" type="datetime-local" value="' + isoToLocalInput(t.start_zeit) + '">'
+      + '        <input id="imsStartTime" type="time" step="900" value="' + isoToTime(t.start_zeit) + '" oninput="imsModal.syncTime(\'start\')">'
       + '      </div>'
       + '      <div class="ims-form-row">'
       + '        <label>Ende *</label>'
-      + '        <input id="imsEnd" type="datetime-local" value="' + isoToLocalInput(t.end_zeit) + '">'
+      + '        <input id="imsEndTime" type="time" step="900" value="' + isoToTime(t.end_zeit) + '" oninput="imsModal.syncTime(\'end\')">'
       + '      </div>'
       + '    </div>'
       + '    <div class="ims-form-grid">'
@@ -2464,8 +2483,11 @@ window.IMS_CONFIG = {
 
   function save(id) {
     var titel = (document.getElementById('imsTitel').value || '').trim();
-    var startIso = localInputToIso(document.getElementById('imsStart').value);
-    var endIso = localInputToIso(document.getElementById('imsEnd').value);
+    var dateStr = document.getElementById('imsDate').value;
+    var startTimeStr = document.getElementById('imsStartTime').value;
+    var endTimeStr = document.getElementById('imsEndTime').value;
+    var startIso = dateTimeToIso(dateStr, startTimeStr);
+    var endIso = dateTimeToIso(dateStr, endTimeStr);
     var kategorie = document.getElementById('imsKat').value;
     var ort = (document.getElementById('imsOrt').value || '').trim();
     var desc = (document.getElementById('imsDesc').value || '').trim();
@@ -2544,7 +2566,28 @@ window.IMS_CONFIG = {
     return html;
   }
 
-  window.imsModal = { open: open, close: close, save: save, del: del };
+  // Wenn End <= Start: End auf Start + 30 Min setzen
+  function syncTime(which) {
+    var sEl = document.getElementById('imsStartTime');
+    var eEl = document.getElementById('imsEndTime');
+    if (!sEl || !eEl) return;
+    var s = sEl.value, eV = eEl.value;
+    if (!s || !eV) return;
+    var sParts = s.split(':'); var eParts = eV.split(':');
+    var sMin = parseInt(sParts[0],10)*60 + parseInt(sParts[1],10);
+    var eMin = parseInt(eParts[0],10)*60 + parseInt(eParts[1],10);
+    if (which === 'start' && eMin <= sMin) {
+      var newEnd = sMin + 30;
+      if (newEnd > 22*60+59) newEnd = 22*60+59;
+      eEl.value = pad2(Math.floor(newEnd/60)) + ':' + pad2(newEnd%60);
+    }
+    if (which === 'end' && eMin <= sMin) {
+      eEl.value = pad2(Math.floor((sMin+15)/60)) + ':' + pad2((sMin+15)%60);
+    }
+  }
+  function syncDate() { /* Datum betrifft beide Zeiten — kein Spezialverhalten noetig */ }
+
+  window.imsModal = { open: open, close: close, save: save, del: del, syncTime: syncTime, syncDate: syncDate };
 })();
 </script>
 
@@ -2669,7 +2712,7 @@ function renderCalendar() {
 
   /* Zeit-Spalte mit JETZT-Pill */
   html += '<div class="time-col">';
-  for (var h = 6; h <= 18; h++) {
+  for (var h = 6; h <= 22; h++) {
     html += '<div class="time-slot">' + (h < 10 ? '0' : '') + h + ':00</div>';
   }
   /* Jetzt-Pill: 10:45 = 4h 45min nach 6:00 = position */
@@ -2681,7 +2724,7 @@ function renderCalendar() {
   for (var dd = 0; dd < 5; dd++) {
     var isToday = TAGE[dd].today;
     html += '<div class="day-col' + (isToday ? ' today' : '') + '">';
-    for (var hl = 0; hl <= 12; hl++) {
+    for (var hl = 0; hl <= 16; hl++) {
       html += '<div class="hour-line" style="top:' + (8 + hl * slotH) + 'px"></div>';
     }
     /* Now-Line in JEDER Day-Col für durchgehende gestrichelte Linie */
@@ -2752,12 +2795,17 @@ function renderTermin(t, top, height, idx) {
 
   var delay = (idx || 0) * 40 + 250;
 
-  var html = '<div class="termin ' + t.kat + '" data-id="' + t.id + '" '
-           + 'style="top:' + top + 'px;height:' + height + 'px;animation-delay:' + delay + 'ms;" '
+  // Bei kurzen Terminen (<= 45 Min): kompakte Darstellung
+  var compact = (t.endH - t.startH) <= 0.75;
+  var effHeight = Math.max(height, 44);  // Mindesthöhe — Titel+Zeit muss lesbar sein
+  var klass = 'termin ' + t.kat + (compact ? ' compact' : '');
+
+  var html = '<div class="' + klass + '" data-id="' + t.id + '" '
+           + 'style="top:' + top + 'px;height:' + effHeight + 'px;animation-delay:' + delay + 'ms;" '
            + 'onclick="openPopup(event, \'' + t.id + '\')">'
            +   hoverActions
            +   topRow
-           +   '<div class="titel">' + t.titel + '</div>'
+           +   '<div class="titel">' + (t.titel || '(ohne Titel)') + '</div>'
            +   '<div class="meta">' + zeit + '</div>'
            +   subHtml
            + '</div>';
