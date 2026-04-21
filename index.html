@@ -127,8 +127,60 @@ input[type=email]:focus{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/supabase-client.js"></script>
+<script>
+/* ==========================================================
+   INLINED JS (ehemals externe Files aus js/)
+   ========================================================== */
+
+/* ---- js/config.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Frontend-Config
+   Diese Datei wird beim Deploy durch Vercel-Build ersetzt, oder
+   manuell mit den echten ANON-Key-Werten überschrieben.
+
+   WICHTIG: nur ANON-KEY hier — KEIN service-role-key!
+   ═══════════════════════════════════════════════════════════════ */
+
+window.IMS_CONFIG = {
+  SUPABASE_URL: "https://elwlptapzwwqhjuxnnws.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsd2xwdGFwend3cWhqdXhubndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjI0MzcsImV4cCI6MjA5MDA5ODQzN30.WDuQgni-pKlRiKWsjQRK5tcWfqBsV865ulSVaZbLQv4",
+  APP_NAME: "iFlow Kalender",
+  APP_BASE_URL: window.location.origin
+};
+
+/* ---- js/supabase-client.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Supabase-Client im Browser
+   Safari-safe · nur var / function / String-Concat · kein import
+   Erwartet window.IMS_CONFIG aus /js/config.js (ENV-Spiegel)
+   ═══════════════════════════════════════════════════════════════ */
+
+(function() {
+  var cfg = window.IMS_CONFIG || {};
+  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
+    console.error('[IMS] SUPABASE_URL oder SUPABASE_ANON_KEY fehlt in /js/config.js');
+    return;
+  }
+  // window.supabase kommt vom CDN-Script in index.html / kalender.html
+  if (!window.supabase || !window.supabase.createClient) {
+    console.error('[IMS] Supabase-CDN nicht geladen');
+    return;
+  }
+  window.imsSupabase = window.supabase.createClient(
+    cfg.SUPABASE_URL,
+    cfg.SUPABASE_ANON_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage,
+        storageKey: 'ims-kalender-auth'
+      }
+    }
+  );
+})();
+</script>
 <script>
 // Safari-safe: nur var / function
 (function() {
@@ -141,7 +193,7 @@ input[type=email]:focus{
   if (window.imsSupabase) {
     window.imsSupabase.auth.getSession().then(function(r) {
       if (r.data && r.data.session) {
-        window.location.href = '/kalender.html';
+        window.location.href = 'kalender.html';
       }
     });
   }
@@ -170,7 +222,7 @@ function signInPw(ev) {
       return;
     }
     showMsg('ok', 'Willkommen! Leite weiter...');
-    setTimeout(function() { window.location.href = '/kalender.html'; }, 400);
+    setTimeout(function() { window.location.href = 'kalender.html'; }, 400);
   });
   return false;
 }

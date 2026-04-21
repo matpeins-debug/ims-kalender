@@ -957,10 +957,428 @@ body {
 
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/supabase-client.js"></script>
-<script src="js/api-client.js"></script>
-<script src="js/date-helpers.js"></script>
+<script>
+/* ==========================================================
+   INLINED JS (ehemals externe Files aus js/)
+   ========================================================== */
+
+/* ---- js/config.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Frontend-Config
+   Diese Datei wird beim Deploy durch Vercel-Build ersetzt, oder
+   manuell mit den echten ANON-Key-Werten überschrieben.
+
+   WICHTIG: nur ANON-KEY hier — KEIN service-role-key!
+   ═══════════════════════════════════════════════════════════════ */
+
+window.IMS_CONFIG = {
+  SUPABASE_URL: "https://elwlptapzwwqhjuxnnws.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsd2xwdGFwend3cWhqdXhubndzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjI0MzcsImV4cCI6MjA5MDA5ODQzN30.WDuQgni-pKlRiKWsjQRK5tcWfqBsV865ulSVaZbLQv4",
+  APP_NAME: "iFlow Kalender",
+  APP_BASE_URL: window.location.origin
+};
+
+/* ---- js/supabase-client.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Supabase-Client im Browser
+   Safari-safe · nur var / function / String-Concat · kein import
+   Erwartet window.IMS_CONFIG aus /js/config.js (ENV-Spiegel)
+   ═══════════════════════════════════════════════════════════════ */
+
+(function() {
+  var cfg = window.IMS_CONFIG || {};
+  if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
+    console.error('[IMS] SUPABASE_URL oder SUPABASE_ANON_KEY fehlt in /js/config.js');
+    return;
+  }
+  // window.supabase kommt vom CDN-Script in index.html / kalender.html
+  if (!window.supabase || !window.supabase.createClient) {
+    console.error('[IMS] Supabase-CDN nicht geladen');
+    return;
+  }
+  window.imsSupabase = window.supabase.createClient(
+    cfg.SUPABASE_URL,
+    cfg.SUPABASE_ANON_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage,
+        storageKey: 'ims-kalender-auth'
+      }
+    }
+  );
+})();
+
+/* ---- js/api-client.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Supabase-Direct-Client (ohne API-Layer) · v2
+   Rest-Interface kompatibel zur frueheren Fetch-Version.
+   Safari-safe: var / function / String-Concat, keine Arrows.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function() {
+
+  function ok(data)            { return { success: true,  data: data, error: null }; }
+  function fail(code, message) { return { success: false, data: null, error: { code: code, message: message } }; }
+
+  function db() { return window.imsSupabase; }
+
+  function getSession() {
+    return db().auth.getSession().then(function(r) {
+      if (!r || !r.data || !r.data.session) {
+        window.location.href = 'index.html?reason=unauthorized';
+        return null;
+      }
+      return r.data.session;
+    });
+  }
+
+  // YYYY-MM-DD  ->  ISO-Untergrenze / -Obergrenze
+  function bisGanzerTag(bis) {
+    if (!bis) return null;
+    return bis + 'T23:59:59';
+  }
+
+  var API = {
+
+    termine: {
+
+      liste: function(von, bis, extra) {
+        var q = db().from('termine').select('*, termin_teilnehmer(*)').order('start_zeit', { ascending: true });
+        if (von) q = q.gte('start_zeit', von);
+        if (bis) q = q.lte('start_zeit', bisGanzerTag(bis));
+        if (extra && extra.kategorie) q = q.eq('kategorie', extra.kategorie);
+        return q.then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          var termine = r.data || [];
+          if (extra && extra.person) {
+            var k = String(extra.person).toLowerCase();
+            termine = termine.filter(function(t) {
+              return (t.termin_teilnehmer || []).some(function(p) {
+                return (p.person_kuerzel || '').toLowerCase() === k;
+              });
+            });
+          }
+          return ok(termine);
+        });
+      },
+
+      get: function(id) {
+        return db().from('termine').select('*, termin_teilnehmer(*)').eq('id', id).maybeSingle().then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          if (!r.data) return fail('NOT_FOUND', 'Termin nicht gefunden');
+          return ok(r.data);
+        });
+      },
+
+      create: function(payload) {
+        return getSession().then(function(sess) {
+          if (!sess) return fail('UNAUTHORIZED', 'Nicht eingeloggt');
+          var data = {};
+          for (var k in payload) if (Object.prototype.hasOwnProperty.call(payload, k)) data[k] = payload[k];
+          if (!data.angelegt_von) data.angelegt_von = sess.user.id;
+          if (!data.besitzer)     data.besitzer     = sess.user.id;
+          var teilnehmer = data.teilnehmer || null;
+          delete data.teilnehmer;
+
+          return db().from('termine').insert(data).select('*').single().then(function(r) {
+            if (r.error) return fail('DB_ERROR', r.error.message);
+            var inserted = r.data;
+
+            if (teilnehmer && teilnehmer.length > 0) {
+              var rows = teilnehmer.map(function(t) {
+                return {
+                  termin_id: inserted.id,
+                  person_kuerzel: t.person_kuerzel || null,
+                  ansprechpartner_id: t.ansprechpartner_id || null,
+                  zugesagt: t.zugesagt || 'pending'
+                };
+              });
+              return db().from('termin_teilnehmer').insert(rows).then(function() {
+                return db().from('termine').select('*, termin_teilnehmer(*)').eq('id', inserted.id).single().then(function(full) {
+                  return ok(full.data || inserted);
+                });
+              });
+            }
+            return ok(inserted);
+          });
+        });
+      },
+
+      update: function(id, payload) {
+        return db().from('termine').update(payload).eq('id', id).select('*, termin_teilnehmer(*)').maybeSingle().then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          if (!r.data) return fail('NOT_FOUND', 'Termin nicht gefunden');
+          return ok(r.data);
+        });
+      },
+
+      del: function(id) {
+        return db().from('termine').delete({ count: 'exact' }).eq('id', id).then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          return ok({ deleted: r.count });
+        });
+      }
+    },
+
+    teilnehmer: {
+      add: function(terminId, payload) {
+        return db().from('termin_teilnehmer').insert({
+          termin_id: terminId,
+          person_kuerzel:     payload.person_kuerzel || null,
+          ansprechpartner_id: payload.ansprechpartner_id || null,
+          zugesagt:           payload.zugesagt || 'pending'
+        }).select('*').single().then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          return ok(r.data);
+        });
+      },
+      update: function(terminId, tnId, payload) {
+        var updates = {};
+        if (payload.zugesagt) {
+          updates.zugesagt     = payload.zugesagt;
+          updates.antwort_zeit = new Date().toISOString();
+        }
+        return db().from('termin_teilnehmer').update(updates).eq('id', tnId).eq('termin_id', terminId).select('*').maybeSingle().then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          if (!r.data) return fail('NOT_FOUND', 'Teilnehmer nicht gefunden');
+          return ok(r.data);
+        });
+      },
+      del: function(terminId, tnId) {
+        return db().from('termin_teilnehmer').delete({ count: 'exact' }).eq('id', tnId).eq('termin_id', terminId).then(function(r) {
+          if (r.error) return fail('DB_ERROR', r.error.message);
+          return ok({ deleted: r.count });
+        });
+      }
+    },
+
+    person: function(kuerzel, von, bis) {
+      var k = String(kuerzel).toLowerCase();
+      var q = db().from('termine').select('*, termin_teilnehmer!inner(*)').ilike('termin_teilnehmer.person_kuerzel', k);
+      if (von) q = q.gte('start_zeit', von);
+      if (bis) q = q.lte('start_zeit', bisGanzerTag(bis));
+      return q.order('start_zeit', { ascending: true }).then(function(r) {
+        if (r.error) return fail('DB_ERROR', r.error.message);
+        return ok(r.data || []);
+      });
+    },
+
+    kunde: function(nr, von, bis) {
+      var kn = parseInt(nr, 10);
+      var q = db().from('termine').select('*, termin_teilnehmer(*)').eq('kunde_id', kn);
+      if (von) q = q.gte('start_zeit', von);
+      if (bis) q = q.lte('start_zeit', bisGanzerTag(bis));
+      return q.order('start_zeit', { ascending: true }).then(function(r) {
+        if (r.error) return fail('DB_ERROR', r.error.message);
+        return ok(r.data || []);
+      });
+    },
+
+    ams: function(von, bis) {
+      var q = db().from('termine_ams').select('*');
+      if (von) q = q.gte('liefertermin', von);
+      if (bis) q = q.lte('liefertermin', bis);
+      return q.order('liefertermin', { ascending: true }).then(function(r) {
+        if (r.error) return fail('DB_ERROR', r.error.message);
+        return ok(r.data || []);
+      });
+    },
+
+    me: function() {
+      return getSession().then(function(sess) {
+        if (!sess) return fail('UNAUTHORIZED', 'Nicht eingeloggt');
+        return ok({
+          id: sess.user.id,
+          email: sess.user.email,
+          user_metadata: sess.user.user_metadata || {}
+        });
+      });
+    }
+  };
+
+  window.imsAPI = API;
+})();
+
+/* ---- js/date-helpers.js ---- */
+/* ═══════════════════════════════════════════════════════════════
+   IMS Kalender · Datum-Helfer (ISO 8601 KW, Mo–Fr)
+   Safari-safe · nur var / function
+   ═══════════════════════════════════════════════════════════════ */
+
+(function() {
+
+  // Gibt Montag 00:00 der KW zurück, in der das Datum liegt.
+  function montagDerWoche(d) {
+    var x = new Date(d.getTime());
+    x.setHours(0,0,0,0);
+    var tag = x.getDay();            // 0=So, 1=Mo, ..., 6=Sa
+    var diff = (tag === 0 ? -6 : 1 - tag);
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+
+  function freitagDerWoche(d) {
+    var mo = montagDerWoche(d);
+    var fr = new Date(mo.getTime());
+    fr.setDate(mo.getDate() + 4);
+    fr.setHours(23, 59, 59, 999);
+    return fr;
+  }
+
+  // ISO 8601 Woche
+  function kwIso(d) {
+    var x = new Date(d.getTime());
+    x.setHours(0,0,0,0);
+    x.setDate(x.getDate() + 4 - (x.getDay() || 7)); // Donnerstag der Woche
+    var jahrStart = new Date(x.getFullYear(), 0, 1);
+    var kw = Math.ceil((((x - jahrStart) / 86400000) + 1) / 7);
+    return kw;
+  }
+
+  function fmtYMD(d) {
+    var y = d.getFullYear();
+    var m = (d.getMonth() + 1);
+    var day = d.getDate();
+    return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+  }
+
+  function fmtDMY(d) {
+    var y = d.getFullYear();
+    var m = (d.getMonth() + 1);
+    var day = d.getDate();
+    return (day < 10 ? '0' : '') + day + '.' + (m < 10 ? '0' : '') + m + '.' + y;
+  }
+
+  var MONATE_LANG = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  var MONATE_KURZ = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var WOCHENTAGE  = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  // Liefert Tage Mo–Fr der Woche inkl. Flag today
+  function wochenTage(refDate) {
+    var mo = montagDerWoche(refDate);
+    var heute = new Date(); heute.setHours(0,0,0,0);
+    var out = [];
+    for (var i = 0; i < 5; i++) {
+      var d = new Date(mo.getTime());
+      d.setDate(mo.getDate() + i);
+      out.push({
+        wd: WOCHENTAGE[d.getDay()],
+        dt: d.getDate(),
+        monat: MONATE_KURZ[d.getMonth()],
+        datum: new Date(d.getTime()),
+        today: d.getTime() === heute.getTime(),
+        ymd: fmtYMD(d)
+      });
+    }
+    return out;
+  }
+
+  // Mappt ein Termin-Objekt vom API-Format in das Render-Format
+  //   { start_zeit, end_zeit, kategorie, titel, ort, termin_teilnehmer[...] , kunde_id, ... }
+  //   → { tag, startH, endH, titel, kat, ort, teilnehmer[{u,s}], ekMarker, ... }
+  // refDate = aktuelles Datum der angezeigten Woche (beliebiger Tag)
+  function mapApiToTermine(apiRows, refDate, meId) {
+    var mo = montagDerWoche(refDate);
+    var fr = freitagDerWoche(refDate);
+    var out = [];
+    for (var i = 0; i < apiRows.length; i++) {
+      var r = apiRows[i];
+      var s = new Date(r.start_zeit);
+      var e = new Date(r.end_zeit);
+      // nur Termine in dieser Woche
+      if (s.getTime() < mo.getTime() || s.getTime() > fr.getTime()) continue;
+
+      var tag = Math.floor((s.getTime() - mo.getTime()) / 86400000);
+      if (tag < 0 || tag > 4) continue;
+
+      var startH = s.getHours() + s.getMinutes() / 60;
+      var endH   = e.getHours() + e.getMinutes() / 60;
+      // Ende am Folgetag (ganztägig stackbar): begrenze auf 24
+      if (e.getDate() !== s.getDate()) endH = 24;
+
+      var teiln = [];
+      var ekMarker = false;
+      if (Array.isArray(r.termin_teilnehmer)) {
+        for (var j = 0; j < r.termin_teilnehmer.length; j++) {
+          var p = r.termin_teilnehmer[j];
+          var u = p.person_kuerzel ? p.person_kuerzel.toLowerCase() : 'ex';
+          teiln.push({ u: u, s: p.zugesagt || 'pending' });
+        }
+      }
+      // EK-Marker: angelegt_von = EK, besitzer ≠ EK (d.h. Elke hat für jemanden angelegt)
+      // Wir kennen hier nur UUIDs — setzen Marker wenn angelegt_von ≠ besitzer
+      if (r.angelegt_von && r.besitzer && r.angelegt_von !== r.besitzer) {
+        ekMarker = true;
+      }
+
+      var videoCall = !!(r.video_call_url);
+      var sub = null;
+      if (r.beschreibung) sub = r.beschreibung;
+
+      var mapped = {
+        id: r.id,
+        tag: tag,
+        allday: r.ganztaegig === true,
+        startH: startH,
+        endH: endH,
+        titel: r.titel,
+        kat: r.kategorie,
+        sub: sub,
+        ort: r.ort || null,
+        videoCall: videoCall,
+        recurring: r.wiederholung ? formatRrule(r.wiederholung) : null,
+        ekMarker: ekMarker,
+        ist_privat: r.ist_privat,
+        besitzer: r.besitzer,
+        angelegt_von: r.angelegt_von,
+        teilnehmer: teiln,
+        kunde_id: r.kunde_id,
+        _raw: r
+      };
+
+      // Privat-Termine anderer User werden im Listing gar nicht erst geschickt (RLS)
+      // Aber falls ein eigener privater Termin — als 'privat' kennzeichnen, nicht 'kunde' etc.
+      if (r.ist_privat && r.besitzer !== meId) {
+        mapped.titel = '🔒 Privat';
+        mapped.kat = 'privat';
+        mapped.ort = null;
+        mapped.sub = null;
+      }
+
+      out.push(mapped);
+    }
+    return out;
+  }
+
+  function formatRrule(rr) {
+    if (!rr) return null;
+    if (rr.indexOf('FREQ=WEEKLY') !== -1) {
+      if (rr.indexOf('BYDAY=MO') !== -1) return 'Wöchentlich · Mo';
+      if (rr.indexOf('BYDAY=TU,WE,TH,FR') !== -1) return 'Di–Fr';
+      return 'Wöchentlich';
+    }
+    if (rr.indexOf('FREQ=YEARLY') !== -1) return 'Jährlich';
+    if (rr.indexOf('FREQ=MONTHLY') !== -1) return 'Monatlich';
+    if (rr.indexOf('FREQ=DAILY') !== -1) return 'Täglich';
+    return rr;
+  }
+
+  window.imsDate = {
+    montagDerWoche: montagDerWoche,
+    freitagDerWoche: freitagDerWoche,
+    kwIso: kwIso,
+    fmtYMD: fmtYMD,
+    fmtDMY: fmtDMY,
+    wochenTage: wochenTage,
+    mapApiToTermine: mapApiToTermine,
+    MONATE_LANG: MONATE_LANG,
+    MONATE_KURZ: MONATE_KURZ
+  };
+})();
+</script>
 <script>
 (function() {
   var CUR = null;
@@ -1134,7 +1552,7 @@ body {
 
     window.imsSupabase.auth.getSession().then(function(r) {
       if (!r.data || !r.data.session) {
-        window.location.href = '/index.html?reason=unauthorized&next=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'index.html?reason=unauthorized&next=' + encodeURIComponent(window.location.pathname);
         return;
       }
       window.imsAPI.termine.get(id).then(function(result) {
