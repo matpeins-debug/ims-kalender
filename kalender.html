@@ -3089,11 +3089,12 @@ document.addEventListener('click', function(ev) {
   }
 
   document.getElementById('calGrid').addEventListener('click', function(ev){
+    console.log('[QC] click on calGrid', ev.target.className);
     // nicht beim Click auf einen Termin ausloesen
-    if (istAufTermin(ev.target)) return;
+    if (istAufTermin(ev.target)) { console.log('[QC] abort: auf termin'); return; }
 
     var dayCol = ev.target.closest('.day-col');
-    if (!dayCol) return;
+    if (!dayCol) { console.log('[QC] abort: keine day-col'); return; }
 
     // Index der Day-Col (0-4 fuer Mo-Fr)
     var cols = document.querySelectorAll('#calGrid .day-col');
@@ -3101,13 +3102,14 @@ document.addEventListener('click', function(ev) {
     for (var i = 0; i < cols.length; i++) {
       if (cols[i] === dayCol) { tagIdx = i; break; }
     }
-    if (tagIdx < 0 || tagIdx >= 5) return;
+    if (tagIdx < 0 || tagIdx >= 5) { console.log('[QC] abort: tagIdx=', tagIdx); return; }
 
     // TAGE[tagIdx] hat .datum (Date) + .ymd
-    if (!window.TAGE || !window.TAGE[tagIdx]) return;
+    if (!window.TAGE || !window.TAGE[tagIdx]) { console.log('[QC] abort: TAGE leer', window.TAGE); return; }
     var tag = window.TAGE[tagIdx];
+    console.log('[QC] tag', tag);
     var datum = tag.datum || (tag.ymd ? new Date(tag.ymd) : null);
-    if (!datum) return;
+    if (!datum) { console.log('[QC] abort: kein datum'); return; }
 
     // Y-Position im Grid -> Uhrzeit
     var rect = dayCol.getBoundingClientRect();
