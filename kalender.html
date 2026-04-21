@@ -210,6 +210,61 @@ body {
   margin-left: auto;
 }
 
+/* ───── KPI-STRIP in Topbar ───── */
+.kpi-strip{
+  display:flex; gap:0;
+  background:rgba(255,255,255,0.6);
+  border-radius:10px;
+  padding:5px;
+  box-shadow:inset 0 0 0 1px rgba(26,25,21,0.06);
+  margin-right:8px;
+}
+.kpi{
+  padding:3px 12px;
+  border-right:1px solid rgba(26,25,21,0.08);
+  display:flex; flex-direction:column; gap:1px;
+}
+.kpi:last-child{border-right:none;}
+.kpi-label{font-size:9px;font-weight:700;color:#7a7266;text-transform:uppercase;letter-spacing:0.8px;}
+.kpi-val{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:800;letter-spacing:-0.4px;color:#1a1915;}
+.kpi-val .unit{font-size:9px;color:#7a7266;margin-left:2px;font-weight:600;}
+.kpi-val .ampel{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:4px;vertical-align:middle;}
+.kpi-val .ampel.gruen{background:#00906a;}
+.kpi-val .ampel.orange{background:#d97706;}
+.kpi-val .ampel.rot{background:#dc2626;}
+.kpi.alarm .kpi-val{color:#dc2626;}
+
+/* ───── RECHTE DASHBOARD-SIDEBAR ───── */
+.dashboard-sidebar{
+  width:300px;
+  flex-shrink:0;
+  padding:22px 14px 28px 0;
+  display:flex; flex-direction:column; gap:14px;
+}
+.widget{
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(20px) saturate(150%);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);
+  border-radius:18px;
+  padding:16px 18px;
+  box-shadow:0 1px 3px rgba(26,25,21,0.04), 0 4px 12px rgba(26,25,21,0.04);
+}
+.widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.widget-title{font-size:10.5px;font-weight:800;color:#7a7266;text-transform:uppercase;letter-spacing:1px;}
+.widget-count{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:#7a7266;background:rgba(26,25,21,0.05);padding:2px 7px;border-radius:100px;}
+.angebot-row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(26,25,21,0.06);}
+.angebot-row:last-child{border-bottom:none;}
+.a-info{flex:1;min-width:0;}
+.a-kunde{font-size:12px;font-weight:700;color:#1a1915;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.a-meta{font-family:"JetBrains Mono",monospace;font-size:10px;color:#7a7266;font-weight:500;margin-top:1px;}
+.a-summe{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:800;color:#1a1915;text-align:right;letter-spacing:-0.3px;}
+.a-tage{font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;text-align:center;margin-top:3px;}
+.a-tage.ok{background:#d9f4e6;color:#006548;}
+.a-tage.warn{background:#fef3c7;color:#92400e;}
+.a-tage.alarm{background:#fee2e2;color:#991b1b;}
+.widget-footer{margin-top:10px;padding-top:10px;border-top:1px solid rgba(26,25,21,0.06);font-size:11px;color:#7a7266;}
+.widget-footer a{color:#00906a;text-decoration:none;font-weight:600;}
+
 /* =====================================================
    COMMAND PALETTE — prominent, wie Linear/Raycast
    ===================================================== */
@@ -1681,6 +1736,24 @@ body {
   </div>
 
   <div class="topbar-right">
+    <div class="kpi-strip" id="kpiStrip">
+      <div class="kpi">
+        <div class="kpi-label">Umsatz heute</div>
+        <div class="kpi-val" id="kpiUmsatz">—<span class="unit">€</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Rohertrag / h</div>
+        <div class="kpi-val" id="kpiRoh">—<span class="unit">€/h</span><span class="ampel gruen" id="kpiRohAmpel"></span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Angebote offen</div>
+        <div class="kpi-val" id="kpiAng">—<span class="unit" id="kpiAngSum"></span></div>
+      </div>
+      <div class="kpi alarm">
+        <div class="kpi-label">Überfällig</div>
+        <div class="kpi-val" id="kpiUeber">—<span class="unit">⚠</span></div>
+      </div>
+    </div>
     <button class="icon-btn" title="Benachrichtigungen">🔔<span class="badge">3</span></button>
     <button class="user-chip" id="userChip" onclick="imsLogout();" title="Klick für Logout">
       <span class="avatar" id="userAvatar">?</span>
@@ -1750,6 +1823,22 @@ body {
       <div class="cal-grid" id="calGrid"></div>
     </div>
   </div>
+
+  <!-- DASHBOARD-SIDEBAR (rechts) -->
+  <aside class="dashboard-sidebar">
+    <div class="widget" id="wgAngebote">
+      <div class="widget-head">
+        <div class="widget-title">Offene Angebote</div>
+        <div class="widget-count" id="wgAngCount">…</div>
+      </div>
+      <div id="wgAngList">
+        <div style="padding:16px 0;text-align:center;color:#7a7266;font-size:12px;">Lade…</div>
+      </div>
+      <div class="widget-footer">
+        <a href="#" id="wgAngAll">Alle anzeigen →</a>
+      </div>
+    </div>
+  </aside>
 
 </div>
 
@@ -2951,5 +3040,166 @@ document.addEventListener('click', function(ev) {
   if (id) imsBearbeiten(id);
 });
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DASHBOARD: Offene Angebote + KPI-Strip (live aus Supabase)
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  var SB_URL = 'https://elwlptapzwwqhjuxnnws.supabase.co';
+  var SB_KEY = 'sb_publishable_MbE6UlJorEnYMe6w77Lixw_ttcF5gBx';
+
+  function fmtEur(n){
+    if (!n || isNaN(n)) return '0';
+    return Math.round(n).toLocaleString('de-AT');
+  }
+  function fmtEurShort(n){
+    if (!n || isNaN(n)) return '0 €';
+    if (n >= 1000) return (n/1000).toFixed(1).replace('.',',') + 'k €';
+    return Math.round(n) + ' €';
+  }
+  function tageSeit(iso){
+    if (!iso) return null;
+    return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  }
+  function tageBadge(tage){
+    if (tage === null) return '';
+    var cls = tage > 20 ? 'alarm' : tage > 10 ? 'warn' : 'ok';
+    return '<div class="a-tage ' + cls + '">' + tage + ' Tage</div>';
+  }
+  function summeAusData(data){
+    if (!data) return 0;
+    // Versuch verschiedene Feld-Varianten
+    if (typeof data.sumTotal === 'number') return data.sumTotal;
+    if (typeof data.total === 'number') return data.total;
+    if (typeof data.gesamt === 'number') return data.gesamt;
+    if (typeof data.netto === 'number') return data.netto;
+    if (data.cond && typeof data.cond.gesamt === 'number') return data.cond.gesamt;
+    // Positionen aufsummieren (häufigster Fall)
+    var arr = data.positions || data.items || data.positionen || [];
+    if (Array.isArray(arr) && arr.length > 0) {
+      var s = 0;
+      for (var i=0; i<arr.length; i++) {
+        var it = arr[i];
+        var t = Number(it.total || it.sumNetto || it.netto || 0);
+        if (t > 0) { s += t; continue; }
+        var qty = Number(it.qty || it.menge || it.count || 1);
+        var price = Number(it.effPU || it.netPU || it.price || it.preis || 0);
+        s += qty * price;
+      }
+      return s;
+    }
+    return 0;
+  }
+  function artikelInfo(data){
+    if (!data) return '';
+    var arr = data.positions || data.items || data.positionen || [];
+    if (Array.isArray(arr) && arr.length > 0) {
+      var total = 0, first = '';
+      for (var i=0; i<arr.length; i++) {
+        total += Number(arr[i].qty || arr[i].menge || arr[i].count || 1);
+        if (!first) first = String(arr[i].name || arr[i].bez || arr[i].title || '').substring(0,20);
+      }
+      return (total>0?total+' Stk':'') + (first?' · '+first:'');
+    }
+    return '';
+  }
+
+  function loadAngebote(){
+    var url = SB_URL + '/rest/v1/angebote?select=angebot_id,version,status,kunde_name,kunde_num,datum,frist,modified_at,data&order=modified_at.desc';
+    fetch(url, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    }).then(function(r){
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(rows){
+      render(rows || []);
+    }).catch(function(err){
+      var el = document.getElementById('wgAngList');
+      if (el) el.innerHTML = '<div style="padding:12px;color:#dc2626;font-size:12px;">Fehler: '+err.message+'</div>';
+    });
+  }
+
+  function render(rows){
+    // Dedup: neueste Version pro angebot_id
+    var byId = {};
+    rows.forEach(function(r){
+      var key = r.angebot_id;
+      if (!byId[key] || Number(r.version) > Number(byId[key].version)) byId[key] = r;
+    });
+    var unique = Object.values(byId);
+
+    // Offen = NICHT angenommen/abgelehnt/storno
+    var offen = unique.filter(function(a){
+      var s = (a.status || '').toLowerCase();
+      return s !== 'angenommen' && s !== 'abgelehnt' && s !== 'storno';
+    });
+
+    offen.sort(function(a,b){
+      var ta = a.datum ? new Date(a.datum).getTime() : 0;
+      var tb = b.datum ? new Date(b.datum).getTime() : 0;
+      return tb - ta;
+    });
+
+    var gesamt = 0;
+    var ueberfaellig = 0;
+    offen.forEach(function(a){
+      gesamt += summeAusData(a.data);
+      var tg = tageSeit(a.datum);
+      if (tg !== null && tg > 20) ueberfaellig++;
+    });
+
+    // Widget-Header
+    var cntEl = document.getElementById('wgAngCount');
+    if (cntEl) cntEl.textContent = offen.length + ' · ' + fmtEurShort(gesamt);
+
+    // KPI-Strip oben
+    var kpiAng = document.getElementById('kpiAng');
+    var kpiAngSum = document.getElementById('kpiAngSum');
+    var kpiUeber = document.getElementById('kpiUeber');
+    if (kpiAng) kpiAng.childNodes[0].nodeValue = offen.length;
+    if (kpiAngSum) kpiAngSum.textContent = ' · ' + fmtEurShort(gesamt);
+    if (kpiUeber) kpiUeber.childNodes[0].nodeValue = ueberfaellig;
+
+    // Top 5 Liste
+    var listEl = document.getElementById('wgAngList');
+    if (!listEl) return;
+    var top = offen.slice(0, 5);
+    if (top.length === 0) {
+      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#7a7266;font-size:12px;">Keine offenen Angebote</div>';
+      return;
+    }
+    var html = '';
+    top.forEach(function(a){
+      var summe = summeAusData(a.data);
+      var info = artikelInfo(a.data);
+      var tage = tageSeit(a.datum);
+      var kunde = a.kunde_name || '(ohne Kunde)';
+      var meta = 'AG-' + a.angebot_id;
+      if (a.version && a.version !== '1') meta += ' v' + a.version;
+      if (info) meta += ' · ' + info;
+      html += '<div class="angebot-row">'
+           +   '<div class="a-info">'
+           +     '<div class="a-kunde">'+kunde+'</div>'
+           +     '<div class="a-meta">'+meta+'</div>'
+           +   '</div>'
+           +   '<div>'
+           +     '<div class="a-summe">'+fmtEur(summe)+' €</div>'
+           +     tageBadge(tage)
+           +   '</div>'
+           + '</div>';
+    });
+    listEl.innerHTML = html;
+  }
+
+  // Warten bis DOM + Supabase-Client bereit sind
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadAngebote);
+  } else {
+    loadAngebote();
+  }
+})();
+</script>
+
 </body>
 </html>
